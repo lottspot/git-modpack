@@ -1,0 +1,5 @@
+help-%pack_name%                                       :: show the help
+%pack_name%-installdir                                 :: print the installdir path for %pack_name%
+%pack_name%-configsdir                                 :: print the configsdir path for %pack_name%
+%pack_name%-reconfig                                   :: reload config sources from the configsdir
+%pack_name%-newconfig CONFIG_NAME                      :: create and load a new config source in the configsdir

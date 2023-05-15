@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+set -e
+
+usage_spec="\
+git configpack init [-n|--name] [PATH]
+
+Create skeleton for a new configpack project
+--
+h,help              show the help
+n,name=             package name (defaults to directory name)
+p,property=key-val  install property
+"
+
+die(){
+  printf 'init: fatal: %s\n' "$*" >&2
+  exit 1
+}
+
+default_package_name()
+{
+  local for_path=$1
+  local pack_basename=$(basename "$for_path")
+  if [[ $pack_basename =~ ^\.+$ ]]; then
+    pack_basename=$(basename "$(cd "$for_path" && pwd)")
+  fi
+  local pack_name=${pack_basename#.}
+  pack_name=${pack_name#git-}
+  printf '%s\n' "$pack_name"
+}
+
+write_properties()
+{
+  local dest=$1
+  mkdir -p "$(dirname "$dest")"
+  printf '# %s %s\n' 'vim:' 'filetype=gitconfig:' > "$dest"
+  for property in "${!properties[@]}"; do
+    var=$property
+    val=${properties[$property]}
+    git config -f "$dest" "$var" "$val"
+  done
+  printf '+ %s\n' "${pack_properties_path#$pack_path/}"
+}
+
+copy_resource()
+{
+  local name=$1
+  local destpath=$2
+  local srcpath=$resource_home/$name
+  mkdir -p "$(dirname "$destpath")"
+  sed -e "s/%pack_name%/${properties['package.name']}/g" < "$srcpath" > "$destpath"
+  if [[ $(find "$srcpath" -prune -perm -00100 2>/dev/null) ]]; then
+    chmod +x "$destpath"
+  fi
+  printf '+ %s\n' "${destpath#$pack_path/}"
+}
+
+declare -A properties
+
+eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
+
+# Parse options
+until [[ $1 == '--' ]]; do
+  opt_name=${1%%=*}
+  opt_arg=${1#*=}
+  case $opt_name in
+    --name     ) pack_name=$opt_arg;;
+    --property ) 
+      propkey=${opt_arg%%=*}
+      propval=${opt_arg#*=}
+      properties[$propkey]=$propval
+    ;;
+  esac
+  shift
+done
+
+shift
+
+# Parse operands
+pack_path=${1:-.}
+
+# Program run
+
+if [[ ! $DISTDIR ]]; then
+  die 'DISTDIR not provided'
+fi
+
+pack_properties_path=$pack_path/install.properties
+resource_home=$DISTDIR/share
+
+declare -A configs=(
+  [core]=core.gitconfig
+)
+
+declare -A resources=(
+  [docs/help.txt]=help.txt
+)
+
+declare -A default_properties=(
+  ['package.configsdir']=configs
+)
+
+if [[ $pack_name ]]; then
+  properties['package.name']=$pack_name
+fi
+
+if [[ ! ${properties['package.name']} ]]; then
+  properties['package.name']=$(default_package_name "$pack_path")
+fi
+
+for default_name in "${!default_properties[@]}"; do
+  default_val=${default_properties[$default_name]}
+  if [[ ! ${properties[$default_name]} ]]; then
+    properties[$default_name]=$default_val
+  fi
+done
+
+if [[ ! -e $pack_properties_path ]]; then
+  write_properties "$pack_properties_path"
+fi
+
+for conf_name in "${!configs[@]}"; do
+  resource_name=${configs[$conf_name]}
+  package_configsdir=${properties['package.configsdir']}
+
+  if [[ $package_configsdir ]]; then
+    conf_path=$pack_path/$package_configsdir/$conf_name
+  else
+    conf_path=$pack_path/$conf_name
+  fi
+
+  if [[ ! -e $conf_path ]]; then
+    copy_resource "$resource_name" "$conf_path"
+  fi
+done
+
+for resource_pathleaf in "${!resources[@]}"; do
+  resource_name=${resources[$resource_pathleaf]}
+  resource_path=$pack_path/$resource_pathleaf
+  if [[ ! -e $resource_path ]]; then
+    copy_resource "$resource_name" "$resource_path"
+  fi
+done
