@@ -92,6 +92,7 @@ declare -A configs=(
 )
 
 declare -A resources=(
+  [install.sh]=install.sh
   [docs/help.txt]=help.txt
 )
 
@@ -113,6 +114,12 @@ for default_name in "${!default_properties[@]}"; do
     properties[$default_name]=$default_val
   fi
 done
+
+# validate install.mode value
+install_mode=${properties['install.mode']}
+if [[ $install_mode ]]; then
+  $resource_home/install.sh --with-property "install.mode=$install_mode" --get-property install.mode >/dev/null
+fi
 
 if [[ ! -e $pack_properties_path ]]; then
   write_properties "$pack_properties_path"
