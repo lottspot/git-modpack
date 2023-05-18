@@ -4,14 +4,16 @@ PKGDIR  ?=
 BINDIR  ?=
 
 prog                  := git-configpack
+version               := $(shell git describe --always --dirty --tags 2>/dev/null)
 destdir               := $(DESTDIR)
 pkgdir                := $(PKGDIR)
 bindir                := $(BINDIR)
 
-pkgfiles              := $(shell          \
-                         find . -type f   \
-                         ! -path '*/.*'   \
-                         ! -name Makefile )
+pkgfiles              := $(shell            \
+                         find . -type f     \
+                         ! -path '*/.*'     \
+                         ! -path './dist/*' \
+                         ! -name Makefile   )
 
 # System context
 prefix                := /usr/local
@@ -39,13 +41,28 @@ install_symlink_path   = $(destdir)$(bindir)/$(prog)
 install_symlink_dir    = $(dir $(install_symlink_path))
 install_pkg_dir        = $(destdir)$(pkgdir)
 install_pkg_paths      = $(patsubst %,$(install_pkg_dir)/%,$(pkgfiles))
+install_pkgver_path    = $(install_pkg_dir)/VERSION
+dist_dir               = dist
+dist_name              = $(prog)-$(version)
+dist_path              = $(dist_dir)/$(dist_name).tar.gz
 
+dist    : $(dist_path)
 install : $(install_pkg_paths)
+install : $(install_pkgver_path)
 install : $(install_symlink_path)
+
+$(dist_path):
+	mkdir -p "`dirname '$@'`"
+	git archive --format=tar.gz --prefix=$(dist_name)/ --add-virtual-file=$(dist_name)/VERSION:$(version) -o '$@' HEAD --
 
 $(install_pkg_paths):
 	mkdir -p "`dirname '$@'`"
 	cp -p '$(patsubst $(install_pkg_dir)/%,%,$@)' '$@'
+
+ifeq ($(filter $(install_pkgver_path),$(install_pkg_paths)),)
+$(install_pkgver_path):
+	printf '%s\n' '$(version)' > '$@'
+endif
 
 MAKEFLAGS += -L
 $(install_symlink_path):
@@ -58,7 +75,7 @@ endif
 uninstall:
 ifneq ($(wildcard $(install_pkg_paths)),)
 ifneq ($(call realpath,$(install_pkg_dir)),$(call realpath,$(CURDIR)))
-	rm -v -f $(install_pkg_paths)
+	rm -v -f $(install_pkg_paths) $(install_pkgver_path)
 	while find '$(install_pkg_dir)' -empty -type d -print0 2>/dev/null | xargs -0 rmdir -v 2>/dev/null; do continue; done; true
 endif
 endif
@@ -66,8 +83,16 @@ ifneq ($(wildcard $(install_symlink_path)),)
 	rm -v -f '$(install_symlink_path)'
 endif
 
+clean:
+ifneq ($(wildcard $(dist_dir)/*),)
+	rm -v -f '$(dist_dir)/'*
+	rmdir -v '$(dist_dir)'
+endif
+
+.PHONY: dist
 .PHONY: install
 .PHONY: uninstall
+.PHONY: clean
 
 realpath = $(shell                                         \
 	   find '$(1)' -prune                              \

@@ -8,6 +8,7 @@ install script for %pack_name% package
 --
   Options:
 h,help                   show the help
+version                  print the version number and exit
 uninstall                remove an installation created by this script
 reinstall                perform an uninstall -> install sequence
 c,reconfigure            (re-)create git config includes of sources in configsdir
@@ -183,6 +184,7 @@ until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
   case $opt_name in
+    --version         ) printf '%pack_name%: packaged with git-configpack version %s\n' '%pack_version%'; exit 0;;
     --reconfigure     ) modes+=(reconfigure)       ;;
     --uninstall       ) modes+=(uninstall)         ;;
     --reinstall       ) modes+=(uninstall install) ;;

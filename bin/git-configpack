@@ -33,6 +33,7 @@ $(printf '  %s\n' "${PROG_OPS[@]}")
 --
   Global options:
 h,help  show the help
+version show the version number and exit
 "
 eval "$(git rev-parse --parseopt --stuck-long --stop-at-non-option -- "$@" <<< "$usage_spec" || echo exit $?)"
 
@@ -60,8 +61,9 @@ until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
   case $opt_name in
-    --help) true;;
-         *) input_error "unsupported global option: $opt_name";;
+    --help    ) true;;
+    --version ) printf '%s version %s\n' "$PROG" "$(cat "$DISTDIR/VERSION")"; exit 0;;
+            * ) input_error "unsupported global option: $opt_name";;
   esac
   shift
 done
