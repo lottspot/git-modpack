@@ -48,29 +48,29 @@ default_package_name()
 property_get()
 {
   local prop_name=$1
-  printf '%s\n' "${properties[$prop_name]}" | tail -n1
+  printf '%s\n' "${PROPERTIES[$prop_name]}" | tail -n1
 }
 
 property_get_all()
 {
   local prop_name=$1
-  printf '%s\n' "${properties[$prop_name]}"
+  printf '%s\n' "${PROPERTIES[$prop_name]}"
 }
 
 property_add()
 {
   local prop_key=$1
   local prop_val=$2
-  if [[ ${properties[$prop_key]} ]]; then
-    properties[$prop_key]=$(printf '%s\n%s\n' "${properties[$prop_key]}" "$prop_val")
+  if [[ ${PROPERTIES[$prop_key]} ]]; then
+    PROPERTIES[$prop_key]=$(printf '%s\n%s\n' "${PROPERTIES[$prop_key]}" "$prop_val")
   else
-    properties[$prop_key]=$prop_val
+    PROPERTIES[$prop_key]=$prop_val
   fi
 }
 
 load_properties()
 {
-  frompath=$1
+  local frompath=$1
   while read prop_key prop_val; do
     test "$prop_key" || continue
     property_add "$prop_key" "$prop_val"
@@ -82,7 +82,7 @@ write_gitconfig()
   while read config_path; do
     test "$config_path" || continue
     config_path=$(sed 's|/./|/|g' <<< "$config_path")
-    path_args=("$config_path")
+    local path_args=("$config_path")
     if ! grep -- '--unset' &>/dev/null <<< "$*"; then
       path_args+=("$config_path")
     fi
@@ -112,6 +112,7 @@ mode_install()
 
 mode_uninstall()
 {
+  local was_installed=
   while read hook; do
     ( eval "$hook" )
   done <<< "$(property_get_all 'uninstall.pre')"
@@ -138,7 +139,7 @@ mode_uninstall()
 
 mode_list_properties()
 {
-  local properties_table=$(for prop_name in "${!properties[@]}"; do printf '%s %s\n' "$prop_name" "${properties[$prop_name]}"; done)
+  local properties_table=$(for prop_name in "${!PROPERTIES[@]}"; do printf '%s %s\n' "$prop_name" "${PROPERTIES[$prop_name]}"; done)
   local awk_prog='
 BEGIN {
   maxlen=0
@@ -166,7 +167,7 @@ fi
 ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 INSTALLDIR=
 properties_path=$PACKDIR/install.properties
-declare -A properties
+declare -A PROPERTIES
 declare -A default_properties=(
   [package.name]=$(default_package_name)
   [package.configsdir]=.
@@ -201,8 +202,8 @@ done
 
 for prop_name in "${!default_properties[@]}"; do
   prop_val=${default_properties[$prop_name]}
-  if [[ ! ${properties[$prop_name]} ]]; then
-    properties[$prop_name]=$prop_val
+  if [[ ! ${PROPERTIES[$prop_name]} ]]; then
+    PROPERTIES[$prop_name]=$prop_val
   fi
 done
 
