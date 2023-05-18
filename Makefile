@@ -1,51 +1,80 @@
-PROG          := git-configpack
-INSTALLER_UID := $(shell id -u)
+# This program requires an enviroonment which supports symlinks
+DESTDIR ?=
+PKGDIR  ?=
+BINDIR  ?=
+
+prog                  := git-configpack
+destdir               := $(DESTDIR)
+pkgdir                := $(PKGDIR)
+bindir                := $(BINDIR)
+
+pkgfiles              := $(shell          \
+                         find . -type f   \
+                         ! -path '*/.*'   \
+                         ! -name Makefile )
 
 # System context
-INSTALL_MODE        := system
-prefix               = /usr/local
-found_pkgdir         = $(firstword $(wildcard /opt /usr/local/opt))
-pkgdir               = $(or $(found_pkgdir),$(prefix))
-distdir              = $(DESTDIR)$(pkgdir)/$(PROG)
-bindir               = $(prefix)/bin
+prefix                := /usr/local
+pkgrootdir            := $(firstword $(wildcard /opt /usr/local/opt) $(prefix))
+
+pkgdir                := $(or $(pkgdir),$(pkgrootdir)/$(prog))
+bindir                := $(or $(bindir),$(prefix)/bin)
+
+ifeq ($(shell id -u),0)
+have_super = 1
+endif
 
 # User context
-user_distdir         = $(CURDIR)
-user_bindir          = $(firstword $(wildcard $(HOME)/.local/bin $(HOME)/.bin $(HOME)/bin))
+ifeq ($(or $(DESTDIR),$(have_super)),)
+prefix                 = $(HOME)/.local
+pkgrootdir             = $(HOME)
+user_bindir            = $(firstword $(wildcard $(HOME)/.local/bin $(HOME)/.bin $(HOME)/bin) $(HOME)/.bin)
 
-ifneq ($(INSTALLER_UID),0)
-ifeq ($(DESTDIR),)
-ifneq ($(user_bindir),)
-
-INSTALL_MODE        := user
-distdir              = $(user_distdir)
-bindir               = $(user_bindir)
-
-endif
-endif
+pkgdir                := $(if $(PKGDIR),$(pkgdir),$(pkgrootdir)/.$(prog))
+bindir                := $(if $(BINDIR),$(bindir),$(user_bindir))
 endif
 
-INSTALL_BIN_SYMLINK   = $(patsubst $(DESTDIR)%,%,$(distdir))/bin/$(PROG)
-INSTALL_BIN_DEST      = $(DESTDIR)$(bindir)/$(PROG)
-INSTALL_BIN_DIR       = $(dir $(INSTALL_BIN_DEST))
+install_symlink_target = $(patsubst $(destdir)%,%,$(pkgdir))/bin/$(prog)
+install_symlink_path   = $(destdir)$(bindir)/$(prog)
+install_symlink_dir    = $(dir $(install_symlink_path))
+install_pkg_dir        = $(destdir)$(pkgdir)
+install_pkg_paths      = $(patsubst %,$(install_pkg_dir)/%,$(pkgfiles))
 
-install: $(INSTALL_BIN_DEST) $(distdir)
+install : $(install_pkg_paths)
+install : $(install_symlink_path)
+
+$(install_pkg_paths):
+	mkdir -p "`dirname '$@'`"
+	cp -p '$(patsubst $(install_pkg_dir)/%,%,$@)' '$@'
+
+MAKEFLAGS += -L
+$(install_symlink_path):
+	mkdir -p "`dirname '$@'`"
+	ln -v -s '$(install_symlink_target)' '$(install_symlink_path)'
+ifeq ($(shell printenv | grep -E 'PATH=(.+:)?$(bindir)(:|$$)'),)
+	@echo WARN: To use this installation, you will need to add the following line to your shell\'s RC file: 'export PATH=$$PATH:$(bindir)' >&2
+endif
 
 uninstall:
-	rm -v -f $(INSTALL_BIN_DEST)
-ifeq ($(INSTALL_MODE),system)
-	rm -rf $(distdir)
+ifneq ($(wildcard $(install_pkg_paths)),)
+ifneq ($(call realpath,$(install_pkg_dir)),$(call realpath,$(CURDIR)))
+	rm -v -f $(install_pkg_paths)
+	while find '$(install_pkg_dir)' -empty -type d -print0 2>/dev/null | xargs -0 rmdir -v 2>/dev/null; do continue; done; true
 endif
-
-$(INSTALL_BIN_DEST): | $(INSTALL_BIN_DIR)
-	ln -v -s '$(INSTALL_BIN_SYMLINK)' '$(INSTALL_BIN_DEST)'
-
-$(INSTALL_BIN_DIR):
-	mkdir -v -p '$@'
-
-$(distdir):
-	mkdir -v -p '$@'
-	cp -r * '$@'
+endif
+ifneq ($(wildcard $(install_symlink_path)),)
+	rm -v -f '$(install_symlink_path)'
+endif
 
 .PHONY: install
 .PHONY: uninstall
+
+realpath = $(shell                                         \
+	   find '$(1)' -prune                              \
+	   -exec realpath {}                         \; -o \
+	   -exec readlink -f {}                      \; -o \
+	   -exec sh -c 'cd "`readlink "{}"`" && pwd' \; -o \
+	   -exec sh -c 'cd "$$(dirname "$$(readlink "{}")")" && printf "%s/%s\n" "`pwd`" "$$(basename "$$(readlink "{}")")"' \; -o \
+	   -exec sh -c 'cd {} && pwd'                \; -o \
+	   -exec sh -c 'cd "`dirname "{}"`" && printf "%s/%s\n" `pwd` "`basename "{}"`"' \; \
+	   2>/dev/null                                     )
