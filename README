@@ -1,0 +1,55 @@
+// vim: filetype=asciidoc:
+= git-configpack =
+
+Develop and package gitconfig fragments with supporting assets for
+redistribution.
+
+This is probably the most useful for embedding suites of git aliases in a
+project which are useful for development (and indeed is the primary use case it
+was developed for).
+
+== Install Fragments Packaged by git-configpack ==
+
+Fragments packaged using `git-configpack` will include an `install.sh` at the
+root of the package tree. This script expects to be executed in the context of
+the locally cloned git repository it will be installed into (i.e., with the repo
+worktree as the working directory).
+
+[source,bash]
+-------------
+test "$(git config --local --get-regex '.*')"
+$configpack_package_path/install.sh
+-------------
+
+== Package Fragments Using git-configpack ==
+
+In order to create packages, you will need to install the `git-configpack`
+utility on the development machine.
+
+=== Install dependencies ===
+
+git      :: A recent version.
+GNU make :: A recent version.
+readlink :: The operating system must support symlinks. This most notably
+ impacts default installations of Git for Windows.
+
+=== Install steps ===
+
+1. Download (and unpack, if archived) the installer
+2. `cd $path_to_installer`
+3. `make install`
+4. Did you receive a warning about your `PATH` from the installer?
+  * Yes: address the warning
+  * No: proceed to next step
+4. `git configpack --version`
+
+=== Create a new package ===
+
+[source,bash]
+----
+git configpack init $new_package_dir
+find ${new_package_dir:-.}/configs ${new_package_dir:-.}/install.* -type f
+----
+
+If a path is not specified, then `PWD` will be initialized with configpack
+resources.
