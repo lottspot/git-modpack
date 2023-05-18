@@ -11,7 +11,7 @@ h,help                   show the help
 uninstall                remove an installation created by this script
 reinstall                perform an uninstall -> install sequence
 c,reconfigure            (re-)create git config includes of sources in configsdir
-l,list-properties        list all install.properties values
+i,list-properties        list all install.properties values
 k,get-property=key       lookup an install.properties value
 p,with-property=key-val  override an install.properties value for this invocation
 "
