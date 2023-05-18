@@ -185,6 +185,30 @@ mode_uninstall()
   done <<< "$(property_get_all 'uninstall.post')"
 }
 
+pack_is_template()
+{
+  if grep '[%]pack_name[%]' <<< "${PROPERTIES['package.name']}" >/dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+pack_rename()
+{
+  local new_name=$1
+  local packrename_dir=$PACKDIR/.packrename
+  find "$PACKDIR" -type f ! -path '*/.*' -exec sed -i.packrename -e "s/[%]pack_name[%]/$new_name/g" {} +
+  find "$PACKDIR" -type f -name '*.packrename' | while read packrename_src; do
+    packrename_stem=${packrename_src#$PACKDIR}
+    packrename_base=${packrename_stem%.packrename}
+    packrename_dest=$packrename_dir/$packrename_base
+    mkdir -p "$(dirname "$packrename_dest")"
+    mv "$packrename_src" "$packrename_dest"
+    printf '+ %s\n' "$packrename_dest"
+  done
+}
+
 PACKDIR=$(dirname "$0")
 
 if readlink "$PACKDIR" &>/dev/null; then
@@ -204,7 +228,13 @@ if [[ -e $properties_path ]]; then
   properties_load "$properties_path"
 fi
 
-eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$install_usage_spec" || echo exit $?)"
+usage_spec="\
+$install_usage_spec
+$(if pack_is_template; then printf '\n  %s\n' 'Template options:'; fi)
+$(if pack_is_template; then printf '%s\n' 'r,rename=new-name rename this template into a package'; fi)
+"
+
+eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
 until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
@@ -223,6 +253,7 @@ until [[ $1 == '--' ]]; do
       propval=${opt_arg#*=}
       property_add "$propkey" "$propval"
     ;;
+    --rename          ) pack_rename "$opt_arg" && exit $?;;
   esac
   shift
 done
