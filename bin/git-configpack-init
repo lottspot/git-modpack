@@ -2,13 +2,14 @@
 set -e
 
 usage_spec="\
-git configpack init [-n|--name] [PATH]
+git configpack init [options] [-n|--name] [PATH]
 
 Create skeleton for a new configpack project
 --
 h,help              show the help
 n,name=             package name (defaults to directory name)
 p,property=key-val  install property
+t,template          convenience option for: -n %pack_name
 "
 
 die(){
@@ -71,6 +72,7 @@ until [[ $1 == '--' ]]; do
       propval=${opt_arg#*=}
       PROPERTIES[$propkey]=$propval
     ;;
+  --template  ) pack_is_template=1;;
   esac
   shift
 done
@@ -104,6 +106,10 @@ declare -A default_properties=(
 
 if [[ $pack_name ]]; then
   PROPERTIES['package.name']=$pack_name
+fi
+
+if [[ $pack_is_template ]]; then
+  PROPERTIES['package.name']=%pack_name%
 fi
 
 if [[ ! ${PROPERTIES['package.name']} ]]; then
