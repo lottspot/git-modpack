@@ -3,8 +3,7 @@ set -e
 
 PROG=$(basename "$0")
 CMD=$0
-
-while read binpath; do binpaths+=("$binpath"); done <<< "$(tr ':' '\n' <<< "$PATH")"
+IFS=: binpaths=( $PATH )
 
 if [[ $0 =~ '/' ]]; then
   bindir=$(dirname "$0")
