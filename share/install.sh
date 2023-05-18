@@ -277,6 +277,7 @@ GIT_CONFIG_OPTS=()
 case $INSTALL_MODE in
   local)
     INSTALLDIR=$(git rev-parse --git-path "$PACKAGE_NAME")
+    GIT_CONFIG_OPTS+=(--local)
   ;;
   global)
     INSTALLDIR=$HOME/.local/share/git-$PACKAGE_NAME
@@ -284,6 +285,7 @@ case $INSTALL_MODE in
   ;;
   static-local)
     INSTALLDIR=$PACKDIR
+    GIT_CONFIG_OPTS+=(--local)
   ;;
   static-global)
     INSTALLDIR=$PACKDIR
