@@ -9,7 +9,7 @@ if [[ $0 =~ '/' ]]; then
   bindir=$(dirname "$0")
   distbin=$(readlink "$0")
 else
-  bindir=$(find "${binpaths[@]}" -name "$0" -exec dirname {} \; 2>/dev/null| head -n1)
+  bindir=$(find "${binpaths[@]}" -maxdepth 1 -name "$0" -exec dirname {} \; 2>/dev/null| head -n1)
   distbin=$(readlink "$bindir/$0")
 fi
 
@@ -19,7 +19,7 @@ BINDIR=$DISTDIR/bin
 PATH=$PATH:$BINDIR
 binpaths+=("$BINDIR")
 
-PROG_CMDS=( $(find "${binpaths[@]}" -type f -name "$PROG-*" -exec basename {} \; 2>/dev/null| sort -u) )
+PROG_CMDS=( $(find "${binpaths[@]}" -maxdepth 1 -type f -name "$PROG-*" -exec basename {} \; 2>/dev/null| sort -u) )
 PROG_OPS=( $(for cmd in "${PROG_CMDS[@]}"; do echo "${cmd#$PROG-}"; done) )
 
 usage_spec="\
