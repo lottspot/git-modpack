@@ -37,9 +37,10 @@ assert_inputs_valid()
 
 default_package_name()
 {
-  local pack_basename=$(basename "$PACKDIR")
+  local packdir=$1
+  local pack_basename=$(basename "$packdir")
   if [[ $pack_basename =~ ^\.+$ ]]; then
-    pack_basename=$(basename "$(cd "$PACKDIR" && pwd)")
+    pack_basename=$(basename "$(cd "$packdir" && pwd)")
   fi
   local pack_name=${pack_basename#.}
   pack_name=${pack_name#git-}
@@ -84,6 +85,19 @@ properties_load()
       property_add "$prop_key" "$prop_val"
     done <<< "$(git config -f "$loadpath" --get-regexp '.*')"
   done
+}
+
+properties_write()
+{
+  local dest=$1
+  mkdir -p "$(dirname "$dest")"
+  printf '# %s %s\n' 'vim:' 'filetype=gitconfig:' > "$dest"
+  for property in "${!PROPERTIES[@]}"; do
+    local var=$property
+    local val=${PROPERTIES[$property]}
+    git config -f "$dest" "$var" "$val"
+  done
+  printf '+ %s\n' "${PACK_PROPERTIES_PATH#$PACK_PATH/}"
 }
 
 properties_dump()
@@ -219,7 +233,7 @@ ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 INSTALLDIR=
 properties_path=$PACKDIR/install.properties
 declare -A default_properties=(
-  [package.name]=$(default_package_name)
+  [package.name]=$(default_package_name "$PACKDIR")
   [package.configsdir]=.
   [install.mode]=static-local
 )

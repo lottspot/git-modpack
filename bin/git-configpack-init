@@ -17,31 +17,6 @@ die(){
   exit 1
 }
 
-default_package_name()
-{
-  local for_path=$1
-  local pack_basename=$(basename "$for_path")
-  if [[ $pack_basename =~ ^\.+$ ]]; then
-    pack_basename=$(basename "$(cd "$for_path" && pwd)")
-  fi
-  local pack_name=${pack_basename#.}
-  pack_name=${pack_name#git-}
-  printf '%s\n' "$pack_name"
-}
-
-write_properties()
-{
-  local dest=$1
-  mkdir -p "$(dirname "$dest")"
-  printf '# %s %s\n' 'vim:' 'filetype=gitconfig:' > "$dest"
-  for property in "${!PROPERTIES[@]}"; do
-    local var=$property
-    local val=${PROPERTIES[$property]}
-    git config -f "$dest" "$var" "$val"
-  done
-  printf '+ %s\n' "${PACK_PROPERTIES_PATH#$PACK_PATH/}"
-}
-
 copy_resource()
 {
   local name=$1
@@ -57,9 +32,13 @@ copy_resource()
   printf '+ %s\n' "${destpath#$PACK_PATH/}"
 }
 
-declare -A PROPERTIES
-
 eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
+
+if [[ ! $DISTDIR ]]; then
+  die 'DISTDIR not provided'
+fi
+
+source "$DISTDIR"/share/install.sh
 
 # Parse options
 until [[ $1 == '--' ]]; do
@@ -83,10 +62,6 @@ shift
 PACK_PATH=${1:-.}
 
 # Program run
-
-if [[ ! $DISTDIR ]]; then
-  die 'DISTDIR not provided'
-fi
 
 PACK_PROPERTIES_PATH=$PACK_PATH/install.properties
 RESOURCE_HOME=$DISTDIR/share
@@ -130,7 +105,7 @@ if [[ $install_mode ]]; then
 fi
 
 if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
-  write_properties "$PACK_PROPERTIES_PATH"
+  properties_write "$PACK_PROPERTIES_PATH"
 fi
 
 for conf_name in "${!configs[@]}"; do
