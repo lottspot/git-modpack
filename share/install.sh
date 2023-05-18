@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-usage_spec="\
+install_usage_spec="\
 install.sh [options]
 
 install script for %pack_name% package
@@ -58,6 +58,13 @@ property_get_all()
   printf '%s\n' "${PROPERTIES[$prop_name]}"
 }
 
+property_set()
+{
+  local prop_key=$1
+  local prop_val=$2
+  PROPERTIES[$prop_key]=$prop_val
+}
+
 property_add()
 {
   local prop_key=$1
@@ -69,14 +76,54 @@ property_add()
   fi
 }
 
-load_properties()
+properties_load()
 {
-  local frompath=$1
-  while read prop_key prop_val; do
-    test "$prop_key" || continue
-    property_add "$prop_key" "$prop_val"
-  done <<< "$(git config -f "$frompath" --get-regexp '.*')"
+  for loadpath in "$@"; do
+    while read prop_key prop_val; do
+      test "$prop_key" || continue
+      property_add "$prop_key" "$prop_val"
+    done <<< "$(git config -f "$loadpath" --get-regexp '.*')"
+  done
 }
+
+properties_dump()
+{
+  for prop_name in "${!PROPERTIES[@]}"; do
+    printf '%s %s\n' "$prop_name" "${PROPERTIES[$prop_name]}";
+  done
+}
+
+properties_list()
+{
+  local awk_prog='
+BEGIN {
+  maxlen=0
+}
+{
+  fieldlen=length($1)
+  if (fieldlen > maxlen) maxlen=fieldlen
+  field[NR]=$1
+  val[NR]=substr($0, fieldlen+2)
+}
+END {
+  fstr = sprintf("%%-%ds  %%s\n", maxlen)
+  for (i = 1; i <= NR; i++) printf(fstr, field[i], val[i])
+}
+'
+awk "$awk_prog" <<< "$(properties_dump)"
+}
+
+declare -A PROPERTIES
+
+if [[ $0 != $BASH_SOURCE ]]; then
+  PACKDIR=$(dirname "$BASH_SOURCE")
+  if readlink "$PACKDIR" &>/dev/null; then
+    PACKDIR=$(readlink "$PACKDIR")
+  fi
+  ABSPACKDIR=$(cd "$PACKDIR" && pwd)
+  INSTALLDIR=$(git %pack_name%-installdir 2>/dev/null || true)
+  return 0
+fi
 
 write_gitconfig()
 {
@@ -138,27 +185,6 @@ mode_uninstall()
   done <<< "$(property_get_all 'uninstall.post')"
 }
 
-mode_list_properties()
-{
-  local properties_table=$(for prop_name in "${!PROPERTIES[@]}"; do printf '%s %s\n' "$prop_name" "${PROPERTIES[$prop_name]}"; done)
-  local awk_prog='
-BEGIN {
-  maxlen=0
-}
-{
-  fieldlen=length($1)
-  if (fieldlen > maxlen) maxlen=fieldlen
-  field[NR]=$1
-  val[NR]=substr($0, fieldlen+2)
-}
-END {
-  fstr = sprintf("%%-%ds  %%s\n", maxlen)
-  for (i = 1; i <= NR; i++) printf(fstr, field[i], val[i])
-}
-'
-  awk "$awk_prog" <<< "$properties_table"
-}
-
 PACKDIR=$(dirname "$0")
 
 if readlink "$PACKDIR" &>/dev/null; then
@@ -168,7 +194,6 @@ fi
 ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 INSTALLDIR=
 properties_path=$PACKDIR/install.properties
-declare -A PROPERTIES
 declare -A default_properties=(
   [package.name]=$(default_package_name)
   [package.configsdir]=.
@@ -176,10 +201,10 @@ declare -A default_properties=(
 )
 
 if [[ -e $properties_path ]]; then
-  load_properties "$properties_path"
+  properties_load "$properties_path"
 fi
 
-eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
+eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$install_usage_spec" || echo exit $?)"
 until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
@@ -245,7 +270,7 @@ for mode in "${modes[@]}"; do
     install         ) mode_install                      ;;
     uninstall       ) mode_uninstall                    ;;
     reconfigure     ) write_gitconfig                   ;;
-    list-properties ) mode_list_properties              ;;
+    list-properties ) properties_list                   ;;
     get-property    ) property_get_all "$get_prop_name" ;;
   esac
 done
