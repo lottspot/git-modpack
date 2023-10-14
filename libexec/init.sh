@@ -2,18 +2,19 @@
 set -e
 
 usage_spec="\
-git configpack init [options] [-n|--name] [PATH]
+configpack-init [options] [-n|--name] PATH
 
 Create skeleton for a new configpack project
 --
-h,help              show the help
+  Options:
+h                   show the help
 n,name=             package name (defaults to directory name)
 p,property=key-val  install property
-t,template          convenience option for: -n %pack_name
+t,template          convenience option for: -n %pack_name%
 "
 
 die(){
-  printf 'init: fatal: %s\n' "$*" >&2
+  printf 'configpack-init: fatal: %s\n' "$*" >&2
   exit 1
 }
 
@@ -21,32 +22,31 @@ copy_resource()
 {
   local name=$1
   local destpath=$2
-  local srcpath=$RESOURCE_HOME/$name
+  local srcpath=$DISTDIR/$name
   mkdir -p "$(dirname "$destpath")"
   sed                                                  \
     -e "s/%pack_name%/${PROPERTIES['package.name']}/g" \
-    -e "s/%pack_version%/$(cat "$DISTDIR/VERSION")/g"  < "$srcpath" > "$destpath"
+    -e "s/%pack_version%/$(cat "$INSTALLDIR/VERSION")/g"  < "$srcpath" > "$destpath"
   if [[ $(find "$srcpath" -prune -perm -00100 2>/dev/null) ]]; then
     chmod +x "$destpath"
   fi
-  printf '+ %s\n' "${destpath#$PACK_PATH/}"
+  printf '+ %s\n' "${destpath#$NEWPACK_DESTPATH/}"
 }
 
-eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
 
-if [[ ! $DISTDIR ]]; then
-  die 'DISTDIR not provided'
-fi
-
-source "$DISTDIR"/share/install.sh
+source "$(git configpack-installdir)/share/install.sh"
+INSTALLDIR=$(git configpack-installdir)
+PACKDIR=$INSTALLDIR
+ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 
 # Parse options
+eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
 until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
   case $opt_name in
-    --name     ) pack_name=$opt_arg;;
-    --property ) 
+    --name     ) newpack_name=$opt_arg;;
+    --property )
       propkey=${opt_arg%%=*}
       propval=${opt_arg#*=}
       PROPERTIES[$propkey]=$propval
@@ -59,12 +59,18 @@ done
 shift
 
 # Parse operands
-PACK_PATH=${1:-.}
+NEWPACK_DESTPATH=$1
 
 # Program run
 
-PACK_PROPERTIES_PATH=$PACK_PATH/install.properties
-RESOURCE_HOME=$DISTDIR/share
+if ! [[ $NEWPACK_DESTPATH ]]; then
+  printf 'error: PATH is required\n' >&2
+  $0 -h
+  exit 1
+fi
+
+PACK_PROPERTIES_PATH=$NEWPACK_DESTPATH/install.properties
+DISTDIR=$INSTALLDIR/share
 
 declare -A configs=(
   [core]=core.gitconfig
@@ -79,8 +85,8 @@ declare -A default_properties=(
   ['package.configsdir']=configs
 )
 
-if [[ $pack_name ]]; then
-  PROPERTIES['package.name']=$pack_name
+if [[ $newpack_name ]]; then
+  PROPERTIES['package.name']=$newpack_name
 fi
 
 if [[ $pack_is_template ]]; then
@@ -88,7 +94,7 @@ if [[ $pack_is_template ]]; then
 fi
 
 if [[ ! ${PROPERTIES['package.name']} ]]; then
-  PROPERTIES['package.name']=$(default_package_name "$PACK_PATH")
+  PROPERTIES['package.name']=$(default_package_name "$NEWPACK_DESTPATH")
 fi
 
 for default_name in "${!default_properties[@]}"; do
@@ -101,7 +107,7 @@ done
 # validate install.mode value
 install_mode=${PROPERTIES['install.mode']}
 if [[ $install_mode ]]; then
-  $RESOURCE_HOME/install.sh --with-property "install.mode=$install_mode" --get-property install.mode >/dev/null
+  $DISTDIR/install.sh --with-property "install.mode=$install_mode" --get-property install.mode >/dev/null
 fi
 
 if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
@@ -113,9 +119,9 @@ for conf_name in "${!configs[@]}"; do
   package_configsdir=${PROPERTIES['package.configsdir']}
 
   if [[ $package_configsdir ]]; then
-    conf_path=$PACK_PATH/$package_configsdir/$conf_name
+    conf_path=$NEWPACK_DESTPATH/$package_configsdir/$conf_name
   else
-    conf_path=$PACK_PATH/$conf_name
+    conf_path=$NEWPACK_DESTPATH/$conf_name
   fi
 
   if [[ ! -e $conf_path ]]; then
@@ -125,7 +131,7 @@ done
 
 for resource_pathleaf in "${!resources[@]}"; do
   resource_name=${resources[$resource_pathleaf]}
-  resource_path=$PACK_PATH/$resource_pathleaf
+  resource_path=$NEWPACK_DESTPATH/$resource_pathleaf
   if [[ ! -e $resource_path ]]; then
     copy_resource "$resource_name" "$resource_path"
   fi

@@ -1,0 +1,7 @@
+help-configpack                                       :: show the help
+configpack-installdir                                 :: print the installdir path for configpack
+configpack-configsdir                                 :: print the configsdir path for configpack
+configpack-reconfig                                   :: reload config sources from the configsdir
+configpack-newconfig CONFIG_NAME                      :: create and load a new config source in the configsdir
+configpack-version                                    :: show the version number
+configpack-init [options|-h] PATH                     :: create a new configpack

@@ -129,7 +129,7 @@ awk "$awk_prog" <<< "$(properties_dump)"
 
 declare -A PROPERTIES
 
-if [[ $0 != $BASH_SOURCE ]]; then
+if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   PACKDIR=$(dirname "$BASH_SOURCE")
   if readlink "$PACKDIR" &>/dev/null; then
     PACKDIR=$(readlink "$PACKDIR")
