@@ -141,7 +141,7 @@ path_realpath()
     -exec sh -c 'cd "`dirname "{}"`" && printf "%s/%s\n" `pwd` "`basename "{}"`"' \; 2>/dev/null
 }
 
-_path_norm()
+path_norm()
 {
   local patharg=$1
   local pathbase=
@@ -228,8 +228,8 @@ path_relto()
   local stem_start=
   local relpath=
 
-  path_dest_norm=$(_path_norm "$path_dest")
-  dir_start_norm=$(_path_norm "$dir_start")
+  path_dest_norm=$(path_norm "$path_dest")
+  dir_start_norm=$(path_norm "$dir_start")
   path_base=$(_paths_shared_base "$path_dest_norm" "$dir_start_norm")
 
   if ! [[ $path_base ]]; then
