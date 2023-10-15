@@ -141,6 +141,142 @@ path_realpath()
     -exec sh -c 'cd "`dirname "{}"`" && printf "%s/%s\n" `pwd` "`basename "{}"`"' \; 2>/dev/null
 }
 
+_path_norm()
+{
+  local patharg=$1
+  local pathbase=
+  local pathstem=
+  while ! path_realpath "$patharg" >/dev/null 2>&1; do
+    if [ "$patharg" = '/' ]; then
+      if [[ $DEBUG ]]; then
+        printf 'path_norm: failed to resolve %s/\n' "$1" >&2
+      fi
+      return 1
+    fi
+    pathstem="/$(basename "$patharg")$pathstem"
+    patharg=$(dirname "$patharg")
+  done
+  pathbase=$(path_realpath "$patharg")
+  test "$pathbase" != '/' || pathbase=
+  printf '%s\n' "$pathbase$pathstem"
+}
+
+_path_strip_base()
+{
+  local patharg=$1
+  local pathbase=$2
+  printf '%s\n' "${patharg#$pathbase}"
+}
+
+_paths_shared_base()
+{
+  local path1=$1
+  local path2=$2
+  awk_prog='
+  BEGIN   { FS = "/"; base_depthsz = 0; }
+  NR == 1 { for (depth = 1; depth <= NF; depth++) { path1[depth] = $depth }; path1_depthsz = NF; }
+  NR == 2 { for (depth = 1; $depth == path1[depth]; depth++) { base[depth] = $depth; base_depthsz++; if (depth+1 > NF || depth+1 > path1_depthsz) break; }}
+  END     {
+    for (depth = 1; depth <= base_depthsz; depth++) {
+      printf("%s", base[depth]);
+      if (depth == 1 && base[depth] == "") {
+	printf "/"
+      }
+      else if ((depth+1) <= base_depthsz) {
+	printf "/"
+      }
+    }
+    if (base_depthsz > 0) printf "\n";
+  }
+'
+  awk "$awk_prog" <<-EOF
+	$path1
+	$path2
+	EOF
+}
+
+_path_top_relto_stem()
+{
+  local stem=$1
+  awk_prog='
+  BEGIN { FS = "/" }
+        {
+	  for (depth = 1; depth <= NF; depth++)
+	  {
+	    if ($depth && $depth != ".")
+	    {
+	      printf "..";
+	      if ((depth+2) <= NF) printf "/";
+	    }
+	  }
+	  if (NF > 0) printf "\n";
+	}
+'
+  awk "$awk_prog" <<-EOF
+	$stem
+	EOF
+}
+
+path_relto()
+{
+  local path_dest=$1
+  local dir_start=$2
+  local path_dest_norm=
+  local dir_start_norm=
+  local path_base=
+  local stem_dest=
+  local stem_start=
+  local relpath=
+
+  path_dest_norm=$(_path_norm "$path_dest")
+  dir_start_norm=$(_path_norm "$dir_start")
+  path_base=$(_paths_shared_base "$path_dest_norm" "$dir_start_norm")
+
+  if ! [[ $path_base ]]; then
+    if [[ $DEBUG ]]; then
+      printf 'no shared base between paths: %s, %s\n' "$path_dest_norm" "$path_base_norm" >&2
+    fi
+    return 1
+  fi
+
+  if [[ $path_base == / ]]; then
+    stem_dest=$path_dest_norm
+    stem_start=$dir_start_norm
+  else
+    stem_dest=$(_path_strip_base "$path_dest_norm" "$path_base")
+    stem_start=$(_path_strip_base "$dir_start_norm" "$path_base")
+  fi
+
+  if [[ $stem_start ]]; then
+    relpath=$(_path_top_relto_stem "$stem_start")
+  else
+    relpath=
+  fi
+
+  if [[ $stem_dest ]] && [[ $stem_start ]]; then
+    relpath+=$(printf '%s' "$stem_dest")
+  elif [[ $stem_dest ]]; then
+    relpath+=$(printf '.%s' "$stem_dest")
+  fi
+
+  if ! [[ $relpath ]]; then
+    relpath=.
+  fi
+
+  if [[ $DEBUG ]]; then
+    echo DEBUG dir_start=$dir_start                       >&2
+    echo DEBUG path_dest=$path_dest                       >&2
+    echo DEBUG dir_start_norm=$dir_start_norm             >&2
+    echo DEBUG path_dest_norm=$path_dest_norm             >&2
+    echo DEBUG path_base=$path_base                       >&2
+    echo DEBUG stem_dest=$stem_dest                       >&2
+    echo DEBUG stem_start=$stem_start                     >&2
+    echo DEBUG relpath=$relpath                           >&2
+  fi
+
+  printf '%s\n' "$relpath"
+}
+
 if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   PACKDIR=$(dirname "$BASH_SOURCE")
   if readlink "$PACKDIR" &>/dev/null; then

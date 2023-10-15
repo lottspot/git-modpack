@@ -1,5 +1,6 @@
 SUITES        += packlib-path
 LIBPATH_TESTS += packlib-path-realpath
+LIBPATH_TESTS += packlib-path-relto
 TESTS         += $(LIBPATH_TESTS)
 
 packlib-path: $(LIBPATH_TESTS)
@@ -10,3 +11,13 @@ packlib-path-realpath:
 	source ../share/install.sh && test "`path_realpath .`" = '$(shell realpath `pwd` 2>/dev/null || readlink `pwd` 2>/dev/null || pwd)'
 	source ../share/install.sh && test "`path_realpath /`" = '/'
 	source ../share/install.sh && path_realpath /bin
+
+packlib-path-relto:
+	source ../share/install.sh && test "`path_relto .. .`" = ..
+	source ../share/install.sh && test "`path_relto . ..`" = ./tests
+	source ../share/install.sh && test "`path_relto . .`"  = .
+	source ../share/install.sh && test "`path_relto / /`"  = .
+	source ../share/install.sh && echo "`path_relto / .`"
+	source ../share/install.sh && echo "`path_relto . /`"
+	source ../share/install.sh && echo "`path_relto / ..`"
+	source ../share/install.sh && echo "`path_relto .. /`"
