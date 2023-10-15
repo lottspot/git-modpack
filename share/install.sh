@@ -129,6 +129,18 @@ awk "$awk_prog" <<< "$(properties_dump)"
 
 declare -A PROPERTIES
 
+path_realpath()
+{
+  local patharg=$1
+  find "$patharg" -prune                                  \
+    -exec realpath {}                         \; -o \
+    -exec readlink -f {}                      \; -o \
+    -exec sh -c 'cd "`readlink "{}"`" && pwd' \; -o \
+    -exec sh -c 'cd "$(dirname "$(readlink "{}")")" && printf "%s/%s\n" "`pwd`" "$(basename "$(readlink "{}")")"' \; -o \
+    -exec sh -c 'cd {} && pwd'                \; -o \
+    -exec sh -c 'cd "`dirname "{}"`" && printf "%s/%s\n" `pwd` "`basename "{}"`"' \; 2>/dev/null
+}
+
 if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   PACKDIR=$(dirname "$BASH_SOURCE")
   if readlink "$PACKDIR" &>/dev/null; then
