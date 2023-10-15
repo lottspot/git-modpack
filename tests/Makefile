@@ -5,6 +5,7 @@ TESTS  :=
 help:
 
 include packlib-path.mk
+include packlib-env.mk
 
 help:
 	@echo
