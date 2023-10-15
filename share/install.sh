@@ -277,6 +277,44 @@ path_relto()
   printf '%s\n' "$relpath"
 }
 
+env_file_add()
+{
+  for env_file_path in "$@"; do
+    ENV_FILES+=("$env_file_path")
+  done
+}
+
+env_set_add()
+{
+  for env_set in "$@"; do
+    ENV_SETS+=("$env_set")
+  done
+}
+
+env_seq_setup()
+{
+  local env_file_sets=()
+  for env_file_path in "${ENV_FILES[@]}"; do
+
+    if ! [[ -r $env_file_path ]]; then
+      continue
+    fi
+
+    while read env_file_line; do
+      if [[ $env_file_line =~ ^([[:alnum:]_]+)=(.*)$ ]]; then
+        env_file_sets+=("$env_file_line")
+      fi
+    done < "$env_file_path"
+
+  done
+
+  ENV_SEQ=( "${env_file_sets[@]}" "${ENV_SETS[@]}" )
+}
+
+ENV_SEQ=()
+ENV_FILES=()
+ENV_SETS=()
+
 if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   PACKDIR=$(dirname "$BASH_SOURCE")
   if readlink "$PACKDIR" &>/dev/null; then
