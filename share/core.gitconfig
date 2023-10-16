@@ -5,3 +5,4 @@
 	%pack_name%-configsdir = "!printf '%s/%s\\n' \"`git %pack_name%-packdir`\" \"$(\"`git %pack_name%-packdir`\"/install.sh --get-property=package.configsdir)\""
 	%pack_name%-reconfig   = "!exec `git %pack_name%-packdir`/install.sh --reconfig"
 	%pack_name%-newconfig  = "!_newconfig(){ if [[ ! $1 ]]; then echo 'usage: %pack_name%-newconfig CONFIG_NAME' >&2; exit 1; fi; config_path=`git %pack_name%-configsdir`/$1; if [[ ! -e $config_path ]]; then printf '# %s %s\\n[alias]\\n' 'vim:' 'filetype=gitconfig:' > \"$config_path\" && echo \"$config_path\" && git %pack_name%-reconfig; fi; }; _newconfig"
+	%pack_name%-newalias   = "!source \"`git %pack_name%-packdir`\"/install.sh && core_newalias"

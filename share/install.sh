@@ -349,6 +349,28 @@ ENV_SEQ=()
 ENV_FILES=()
 ENV_SETS=()
 
+core_newalias()
+{
+  if [[ ! $1 ]]; then
+    printf 'usage: newalias ALIAS_NAME\n' >&2
+    exit 1
+  fi
+  local helpdoc=$PACKDIR/docs/help.txt
+  local coreconfig=$PACKDIR/$($PACKDIR/install.sh --get-property=package.configsdir)/core
+  local awk_prog='
+{ divcol = index($0, "::") }
+END {
+  aliaslen = length(newalias)
+  aliaslen >= divcol ? divcol = aliaslen + 2 : divcol = divcol - (aliaslen +1)
+  printf "%s" sprintf("%%%ds", divcol) "::\n", newalias, ""
+}
+'
+  git config --file="$coreconfig" --add alias."$1" '!false'
+  if [[ -w $helpdoc ]]; then
+    awk -v newalias="$1" "$awk_prog" < "$helpdoc" >> "$helpdoc"
+  fi
+}
+
 if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   PACKDIR=$(dirname "$BASH_SOURCE")
   if readlink "$PACKDIR" &>/dev/null; then
