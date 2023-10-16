@@ -29,6 +29,7 @@ version                  print the version number and exit
 uninstall                remove an installation created by this script
 reinstall                perform an uninstall -> install sequence
 c,reconfigure            (re-)create git config includes of sources in configsdir
+abspath                  use absolute paths for values installed into gitconfig
 global                   convenience option for -p install.scope=global
 local                    convenience option for -p install.scope=local
 i,list-properties        list all install.properties values
@@ -361,23 +362,64 @@ write_gitconfig()
 {
   while read config_path; do
     test "$config_path" || continue
-    config_path=$(sed 's|/./|/|g' <<< "$config_path")
+
+    if ! [[ $ENABLE_INSTALL_ABSPATHS ]]; then
+      config_path=$(path_relto "$config_path" "$INSTALL_GITCONFIG_DIR")
+    fi
+
     local path_args=("$config_path")
     if ! grep -- '--unset' &>/dev/null <<< "$*"; then
       path_args+=("$config_path")
+      local write_op=set
+    else
+      local write_op=unset
     fi
-    git config "${GIT_CONFIG_OPTS[@]}" --fixed-value "$@" include.path "${path_args[@]}"
+
+    if ! git config "${GIT_CONFIG_OPTS[@]}" --fixed-value "$@" include.path "${path_args[@]}" && [[ $write_op == 'set'  ]]; then
+      return 1
+    fi
   done <<< "$(find "$ABSPACKDIR/$PACKAGE_CONFIGSDIR" -maxdepth 1 -mindepth 1 -type f ! -name '.*' ! -name install.sh ! -name install.properties 2>/dev/null)"
+}
+
+locate_gitconfig()
+{
+  local tmpkey=x$(dd if=/dev/urandom bs=1 count=4 status=none | od -A n -t x1 | tr -d '[:space:]')
+  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpacktmp.$tmpkey true
+  INSTALL_GITCONFIG_DIR=`dirname $(
+    git config "${GIT_CONFIG_OPTS[@]}" --get --show-origin configpacktmp.$tmpkey |
+    cut -d$'\t' -f1                                                              |
+    sed -E 's/^file:(.*)/\1/g'
+  )`
+  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpacktmp.$tmpkey
 }
 
 mode_install()
 {
+  local packdir_installpath=
+  local local_worktree=
+
+  locate_gitconfig
+
+  if [[ $INSTALL_SCOPE == local ]]; then
+    local_worktree=$(git -C "$INSTALL_GITCONFIG_DIR" worktree list --porcelain | sed -n 1p | awk '{$1="";print substr($0, index($0, $2))}' || true)
+  fi
+
+  if [[ $local_worktree ]]; then
+    packdir_installpath=$(path_relto "$ABSPACKDIR" "$local_worktree")
+  else
+    packdir_installpath=$ABSPACKDIR
+  fi
+
+  if [[ $ENABLE_INSTALL_ABSPATHS ]]; then
+    packdir_installpath=$ABSPACKDIR
+  fi
+
   while read hook; do
     ( eval "$hook" )
   done <<< "$(property_get_all 'install.pre')"
 
   write_gitconfig
-  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpack.$PACKAGE_NAME.packdir "$ABSPACKDIR"
+  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpack.$PACKAGE_NAME.packdir "$packdir_installpath"
 
   while read hook; do
     ( eval "$hook" )
@@ -386,13 +428,14 @@ mode_install()
 
 mode_uninstall()
 {
-  local was_installed=
+  locate_gitconfig
+
   while read hook; do
     ( eval "$hook" )
   done <<< "$(property_get_all 'uninstall.pre')"
 
   write_gitconfig --unset
-  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpack.$PACKAGE_NAME.packdir
+  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpack.$PACKAGE_NAME.packdir || true
 
   while read hook; do
     ( eval "$hook" )
@@ -449,6 +492,7 @@ declare -A default_properties=(
   [package.configsdir]=.
   [install.scope]=$(default_install_scope)
 )
+ENABLE_INSTALL_ABSPATHS=
 
 if [[ -e $properties_path ]]; then
   properties_load "$properties_path"
@@ -469,6 +513,7 @@ until [[ $1 == '--' ]]; do
     --reconfigure     ) modes+=(reconfigure)              ;;
     --uninstall       ) modes+=(uninstall)                ;;
     --reinstall       ) modes+=(uninstall install)        ;;
+    --abspath         ) ENABLE_INSTALL_ABSPATHS=1         ;;
     --global          ) property_add install.scope global ;;
     --local           ) property_add install.scope local  ;;
     --list-properties ) modes+=(list-properties)          ;;
@@ -502,6 +547,7 @@ PACKAGE_NAME=$(property_get 'package.name')
 PACKAGE_CONFIGSDIR=$(property_get 'package.configsdir')
 INSTALL_SCOPE=$(property_get 'install.scope')
 GIT_CONFIG_OPTS=()
+INSTALL_GITCONFIG_DIR=
 
 case $INSTALL_SCOPE in
   local)
