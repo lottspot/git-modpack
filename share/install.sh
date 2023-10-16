@@ -1,4 +1,21 @@
 #!/usr/bin/env bash
+# = packlib =
+#
+# path::
+#   * `path_realpath    PATH`
+#   * `path_norm        PATH`
+#   * `path_relto       DEST STARTDIR`
+# env::
+#   * `env_set_add      VAR=VAL...`
+#   * `env_file_add     PATH...`
+#   * `env_seq_setup`
+#   * `${ENV_SEQ[*]}`
+# property::
+#   * `property_add     KEY VAL`
+#   * `property_get     KEY`
+#   * `property_get_all KEY`
+#   * `proprties_load   PATH...`
+#   * `proprties_write  PATH`
 set -e
 
 install_usage_spec="\
@@ -15,6 +32,7 @@ c,reconfigure            (re-)create git config includes of sources in configsdi
 i,list-properties        list all install.properties values
 k,get-property=key       lookup an install.properties value
 p,with-property=key-val  override an install.properties value for this invocation
+libdoc                   print the packlib synopsis
 "
 
 input_error()
@@ -385,6 +403,19 @@ mode_uninstall()
   done <<< "$(property_get_all 'uninstall.post')"
 }
 
+mode_libdoc()
+{
+  local awk_prog='
+BEGIN { processing = 0 }
+# adoc title
+/^# = [^[:space:]]/ { processing = 1 }
+# non-comment line
+/^[^#]/             { processing = 0 }
+processing          { print substr($0, 3) }
+'
+  awk "$awk_prog" < "$0"
+}
+
 pack_is_template()
 {
   if grep '[%]pack_name[%]' <<< "${PROPERTIES['package.name']}" >/dev/null; then
@@ -454,6 +485,7 @@ until [[ $1 == '--' ]]; do
       property_add "$propkey" "$propval"
     ;;
     --rename          ) pack_rename "$opt_arg" && exit $?;;
+    --libdoc          ) modes+=(libdoc)            ;;
   esac
   shift
 done
@@ -505,5 +537,6 @@ for mode in "${modes[@]}"; do
     reconfigure     ) write_gitconfig                   ;;
     list-properties ) properties_list                   ;;
     get-property    ) property_get_all "$get_prop_name" ;;
+    libdoc          ) mode_libdoc                       ;;
   esac
 done
