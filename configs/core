@@ -5,5 +5,6 @@
 	configpack-configsdir = "!printf '%s/%s\\n' \"`git configpack-packdir`\" \"$(\"`git configpack-packdir`\"/install.sh --get-property=package.configsdir)\""
 	configpack-reconfig   = "!exec \"`git configpack-packdir`\"/install.sh --reconfig"
 	configpack-newconfig  = "!_newconfig(){ if [[ ! $1 ]]; then echo 'usage: configpack-newconfig CONFIG_NAME' >&2; exit 1; fi; config_path=`git configpack-configsdir`/$1; if [[ ! -e $config_path ]]; then printf '# %s %s\\n[alias]\\n' 'vim:' 'filetype=gitconfig:' > \"$config_path\" && echo \"$config_path\" && git configpack-reconfig; fi; }; _newconfig"
+	configpack-newalias   = "!source \"`git configpack-packdir`\"/install.sh && core_newalias"
 	configpack-version    = "!exec cat \"`git configpack-packdir`\"/VERSION"
 	configpack-init       = "!exec \"`git configpack-packdir`\"/libexec/init.sh"
