@@ -29,6 +29,8 @@ version                  print the version number and exit
 uninstall                remove an installation created by this script
 reinstall                perform an uninstall -> install sequence
 c,reconfigure            (re-)create git config includes of sources in configsdir
+global                   convenience option for -p install.scope=global
+local                    convenience option for -p install.scope=local
 i,list-properties        list all install.properties values
 k,get-property=key       lookup an install.properties value
 p,with-property=key-val  override an install.properties value for this invocation
@@ -63,6 +65,19 @@ default_package_name()
   local pack_name=${pack_basename#.}
   pack_name=${pack_name#git-}
   printf '%s\n' "$pack_name"
+}
+
+default_install_scope()
+{
+  local gitconfig_scope=
+  local tmpkey=x$(dd if=/dev/urandom bs=1 count=4 status=none | od -A n -t x1 | tr -d '[:space:]')
+  git config --replace-all configpacktmp.$tmpkey true
+  gitconfig_scope=$(
+    git config --get --show-scope configpacktmp.$tmpkey |
+    cut -d$'\t' -f1
+  )
+  git config --unset-all configpacktmp.$tmpkey
+  printf '%s\n' "$gitconfig_scope"
 }
 
 property_get()
@@ -338,8 +353,7 @@ if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   if readlink "$PACKDIR" &>/dev/null; then
     PACKDIR=$(readlink "$PACKDIR")
   fi
-  ABSPACKDIR=$(cd "$PACKDIR" && pwd)
-  INSTALLDIR=$(git %pack_name%-installdir 2>/dev/null || true)
+  ABSPACKDIR=$(path_realpath "$PACKDIR")
   return 0
 fi
 
@@ -362,14 +376,8 @@ mode_install()
     ( eval "$hook" )
   done <<< "$(property_get_all 'install.pre')"
 
-  if [[ ! -e $INSTALLDIR ]]; then
-    mkdir -p "$(dirname "$INSTALLDIR")"
-    ln -s "$ABSPACKDIR" "$INSTALLDIR"
-    printf '+ %s\n' "$INSTALLDIR"
-  fi
-
   write_gitconfig
-  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpack.$PACKAGE_NAME.installdir "$INSTALLDIR"
+  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpack.$PACKAGE_NAME.packdir "$ABSPACKDIR"
 
   while read hook; do
     ( eval "$hook" )
@@ -383,20 +391,8 @@ mode_uninstall()
     ( eval "$hook" )
   done <<< "$(property_get_all 'uninstall.pre')"
 
-  if find "$INSTALLDIR" -prune &>/dev/null; then
-    was_installed=1
-  fi
-
-  if [[ $INSTALLDIR != $PACKDIR ]]; then
-    rm -f "$INSTALLDIR"
-  fi
-
-  if [[ $was_installed ]] && ! find "$INSTALLDIR" -prune &>/dev/null; then
-    printf -- '- %s\n' "$INSTALLDIR"
-  fi
-
   write_gitconfig --unset
-  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpack.$PACKAGE_NAME.installdir
+  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpack.$PACKAGE_NAME.packdir
 
   while read hook; do
     ( eval "$hook" )
@@ -446,13 +442,12 @@ if readlink "$PACKDIR" &>/dev/null; then
   PACKDIR=$(readlink "$PACKDIR")
 fi
 
-ABSPACKDIR=$(cd "$PACKDIR" && pwd)
-INSTALLDIR=
+ABSPACKDIR=$(path_realpath "$PACKDIR")
 properties_path=$PACKDIR/install.properties
 declare -A default_properties=(
   [package.name]=$(default_package_name "$PACKDIR")
   [package.configsdir]=.
-  [install.mode]=static-local
+  [install.scope]=$(default_install_scope)
 )
 
 if [[ -e $properties_path ]]; then
@@ -471,10 +466,12 @@ until [[ $1 == '--' ]]; do
   opt_arg=${1#*=}
   case $opt_name in
     --version         ) printf '%pack_name%: packaged with git-configpack version %s\n' '%pack_version%'; exit 0;;
-    --reconfigure     ) modes+=(reconfigure)       ;;
-    --uninstall       ) modes+=(uninstall)         ;;
-    --reinstall       ) modes+=(uninstall install) ;;
-    --list-properties ) modes+=(list-properties)   ;;
+    --reconfigure     ) modes+=(reconfigure)              ;;
+    --uninstall       ) modes+=(uninstall)                ;;
+    --reinstall       ) modes+=(uninstall install)        ;;
+    --global          ) property_add install.scope global ;;
+    --local           ) property_add install.scope local  ;;
+    --list-properties ) modes+=(list-properties)          ;;
     --get-property    )
       modes+=(get-property)
       get_prop_name=$opt_arg
@@ -484,8 +481,8 @@ until [[ $1 == '--' ]]; do
       propval=${opt_arg#*=}
       property_add "$propkey" "$propval"
     ;;
-    --rename          ) pack_rename "$opt_arg" && exit $?;;
-    --libdoc          ) modes+=(libdoc)            ;;
+    --rename          ) pack_rename "$opt_arg" && exit $? ;;
+    --libdoc          ) modes+=(libdoc)                   ;;
   esac
   shift
 done
@@ -503,28 +500,18 @@ fi
 
 PACKAGE_NAME=$(property_get 'package.name')
 PACKAGE_CONFIGSDIR=$(property_get 'package.configsdir')
-INSTALL_MODE=$(property_get 'install.mode')
+INSTALL_SCOPE=$(property_get 'install.scope')
 GIT_CONFIG_OPTS=()
 
-case $INSTALL_MODE in
+case $INSTALL_SCOPE in
   local)
-    INSTALLDIR=$(git rev-parse --git-path "$PACKAGE_NAME")
     GIT_CONFIG_OPTS+=(--local)
   ;;
   global)
-    INSTALLDIR=$HOME/.local/share/git-$PACKAGE_NAME
-    GIT_CONFIG_OPTS+=(--global)
-  ;;
-  static-local)
-    INSTALLDIR=$PACKDIR
-    GIT_CONFIG_OPTS+=(--local)
-  ;;
-  static-global)
-    INSTALLDIR=$PACKDIR
     GIT_CONFIG_OPTS+=(--global)
   ;;
   *)
-    input_error "invalid install.mode: $INSTALL_MODE; must be one of: local, global, static-local, static-global"
+    input_error "invalid install.scope: $INSTALL_SCOPE; must be one of: local, global"
   ;;
 esac
 

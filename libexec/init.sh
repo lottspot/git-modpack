@@ -26,7 +26,7 @@ copy_resource()
   mkdir -p "$(dirname "$destpath")"
   sed                                                  \
     -e "s/%pack_name%/${PROPERTIES['package.name']}/g" \
-    -e "s/%pack_version%/$(cat "$INSTALLDIR/VERSION")/g"  < "$srcpath" > "$destpath"
+    -e "s/%pack_version%/$(cat "$PACKDIR/VERSION")/g"  < "$srcpath" > "$destpath"
   if [[ $(find "$srcpath" -prune -perm -00100 2>/dev/null) ]]; then
     chmod +x "$destpath"
   fi
@@ -34,9 +34,8 @@ copy_resource()
 }
 
 
-source "$(git configpack-installdir)/share/install.sh"
-INSTALLDIR=$(git configpack-installdir)
-PACKDIR=$INSTALLDIR
+source "$(git configpack-packdir)/share/install.sh"
+PACKDIR=$(git configpack-packdir)
 ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 
 # Parse options
@@ -70,7 +69,7 @@ if ! [[ $NEWPACK_DESTPATH ]]; then
 fi
 
 PACK_PROPERTIES_PATH=$NEWPACK_DESTPATH/install.properties
-DISTDIR=$INSTALLDIR/share
+DISTDIR=$PACKDIR/share
 
 declare -A configs=(
   [core]=core.gitconfig
