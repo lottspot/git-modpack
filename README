@@ -1,55 +1,78 @@
 // vim: filetype=asciidoc:
 = git-configpack =
 
-Develop and package gitconfig fragments with supporting assets for
-redistribution.
+Create suites of git aliases which may be either embedded in a git project or
+globally installed into a user's `.gitconfig`.
 
-This is probably the most useful for embedding suites of git aliases in a
-project which are useful for development (and indeed is the primary use case it
-was developed for).
+== Installation ==
 
-== Install Fragments Packaged by git-configpack ==
+=== requirements ===
 
-Fragments packaged using `git-configpack` will include an `install.sh` at the
-root of the package tree. This script expects to be executed in the context of
-the locally cloned git repository it will be installed into (i.e., with the repo
-worktree as the working directory).
+`git`:: The installed version of git should be "recent" (circa 2023). `git-configpack`
+ has not been tested with older installations of git.
 
-[source,bash]
--------------
-test "$(git config --local --get-regex '.*')"
-$configpack_package_path/install.sh
--------------
+=== steps ===
 
-== Package Fragments Using git-configpack ==
+1. Download and unpack a distribution archive
+  * By convention, this archive should be unpacked in `$HOME/.local/share`
+2. `$HOME/.local/share/git-configpack/install.sh`
+3. `git help-configpack`
 
-In order to create packages, you will need to install the `git-configpack`
-utility on the development machine.
+== Developing Configpacks ==
 
-=== Install dependencies ===
+The examples below operate on a tmp configpack named `foo`. Replace the name
+and location accordingly.
 
-git      :: A recent version.
-GNU make :: A recent version.
-readlink :: The operating system must support symlinks. This most notably
- impacts default installations of Git for Windows.
+=== create a new configpack ===
 
-=== Install steps ===
-
-1. Download (and unpack, if archived) the installer
-2. `cd $path_to_installer`
-3. `make install`
-4. Did you receive a warning about your `PATH` from the installer?
-  * Yes: address the warning
-  * No: proceed to next step
-4. `git configpack --version`
-
-=== Create a new package ===
-
-[source,bash]
 ----
-git configpack init $new_package_dir
-find ${new_package_dir:-.}/configs ${new_package_dir:-.}/install.* -type f
+git configpack-init /tmp/git-foo
+/tmp/git-foo/install.sh
 ----
 
-If a path is not specified, then `PWD` will be initialized with configpack
-resources.
+To validate the installation and view the core aliases, use the help alias:
+
+----
+git help-foo
+----
+
+=== add a new alias to a configpack ===
+
+To add an "echo" alias:
+
+----
+git foo-newalias foo-echo "!echo"
+----
+
+The second argument (`!echo`) is optional, and represents the command which the
+alias will be set to. For more information on alias command format, refer to the
+`alias.*` entry in `git-config(1)`.
+
+=== add a complex alias as an embedded bash script ===
+
+Aliases which require complex logic, escape sequences, or long sequences of
+commands may prove difficult to maintain as values in pack config files.
+For such cases, configpacks provide an "exec alias" convention which provides
+for executing bash scripts as aliases.
+
+----
+git foo-newexecalias foo-script
+----
+
+The location of the newly created script will be written to stdout.
+
+=== distributing and installing configpacks ===
+
+A configpack is distributed as a simple file tree, and can thus be packaged and
+distributed using any archive format or committed within a project tree. All
+configpacks are installed by executing the `install.sh` installer. E.g.,
+
+----
+/tmp/git-foo/install.sh
+----
+
+=== uninstalling configpacks ===
+
+----
+/tmp/git-foo/install.sh --uninstall
+----
