@@ -380,6 +380,67 @@ END {
   fi
 }
 
+core_newexecalias()
+{
+  local alias_name=$1
+  local libexecdir=$PACKDIR/$($PACKDIR/install.sh --get-property=package.libexecdir)
+  local package_name=$($PACKDIR/install.sh --get-property=package.name)
+  local alias_script_name=$alias_name.sh
+  local alias_script_path=$libexecdir/$alias_script_name
+  local alias_script_skel=$(cat <<'EOF' | sed -E "s,%alias_name%,$alias_name,g"
+#!/usr/bin/env bash
+set -e
+
+usage_spec="\
+%alias_name% [options]
+
+alias program %alias_name%
+--
+  Options:
+h             show the help
+echo?CONTENT  print <CONTENT> and immediately exit
+"
+
+eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
+until [[ $1 == '--' ]]; do
+  case $1 in
+    --*)
+      opt_name=${1%%=*}
+      opt_arg=${1#*=}
+      if [[ $opt_name == $opt_arg ]]; then
+        opt_arg=
+      fi
+    ;;
+    -[^-]*)
+      opt_name=${1:0:2}
+      opt_arg=${1:2}
+    ;;
+  esac
+  case $opt_name in
+    --echo) if [[ $opt_arg ]]; then echo "$opt_arg"; fi; exit 0;;
+  esac
+  shift
+done
+shift
+EOF
+)
+
+  if [[ ! $alias_name ]]; then
+    printf 'usage: newexecalias ALIAS_NAME\n' >&2
+    exit 1
+  fi
+
+  if [[ -e "$alias_script_path" ]]; then
+    exit 0
+  fi
+
+  mkdir -p "$libexecdir"
+  core_newalias "$alias_name" "!exec \"\`git $package_name-libexecdir\`/$alias_script_name\""
+  printf '%s\n' "$alias_script_skel" > "$alias_script_path"
+  chmod +x "$alias_script_path"
+  printf '+ %s\n' "${alias_script_path#$PACKDIR/}"
+}
+
 if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   PACKDIR=$(dirname "$BASH_SOURCE")
   if readlink "$PACKDIR" &>/dev/null; then
