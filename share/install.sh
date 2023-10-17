@@ -373,8 +373,10 @@ END {
   fi
 
   git config --file="$coreconfig" --add alias."$alias_name" "$alias_cmd"
+  printf '>> %s\n' "${coreconfig#$PACKDIR/}"
   if [[ -w $helpdoc ]]; then
     awk -v newalias="$alias_name" "$awk_prog" < "$helpdoc" >> "$helpdoc"
+    printf '>> %s\n' "${helpdoc#$PACKDIR/}"
   fi
 }
 
