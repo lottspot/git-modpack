@@ -1,10 +1,3 @@
-help-configpack                                       :: show the help
-configpack-packdir                                    :: print the packdir path for configpack
-configpack-configsdir                                 :: print the configsdir path for configpack
-configpack-libexecdir                                 :: print the libexecdir path for configpack
-configpack-reconfig                                   :: reload config sources from the configsdir
-configpack-newconfig    CONFIG_NAME                   :: create and install a new pack config in the configsdir
-configpack-newalias     ALIAS_NAME [ALIAS_CMD]        :: create a new alias in the core config
-configpack-newexecalias ALIAS_NAME                    :: create a new alias script in libexecdir
-configpack-version                                    :: show the version number
-configpack-init [options|-h] PATH                     :: create a new configpack
+help-configpack                    :: show the help
+configpack-version                 :: show the version number
+configpack-init [options|-h] PATH  :: create a new configpack
