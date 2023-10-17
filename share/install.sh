@@ -521,6 +521,7 @@ properties_path=$PACKDIR/install.properties
 declare -A default_properties=(
   [package.name]=$(default_package_name "$PACKDIR")
   [package.configsdir]=.
+  [package.libexecdir]=libexec
   [install.scope]=$(default_install_scope)
 )
 ENABLE_INSTALL_ABSPATHS=

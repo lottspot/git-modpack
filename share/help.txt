@@ -1,6 +1,7 @@
 help-%pack_name%                                       :: show the help
 %pack_name%-packdir                                    :: print the packdir path for %pack_name%
 %pack_name%-configsdir                                 :: print the configsdir path for %pack_name%
+%pack_name%-libexecdir                                 :: print the libexecdir path for %pack_name%
 %pack_name%-reconfig                                   :: reload config sources from the configsdir
 %pack_name%-newconfig CONFIG_NAME                      :: create and install a new pack config in the configsdir
 %pack_name%-newalias  ALIAS_NAME [ALIAS_CMD]           :: create a new alias in the core config

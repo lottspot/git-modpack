@@ -3,6 +3,7 @@
 	help-configpack       = "!cat `git configpack-packdir`/docs/help.txt 2>/dev/null; true"
 	configpack-packdir    = "!git config --default=\"`find .git/configpack .git-configpack git-configpack \"$HOME\"/.local/share/git-configpack . -prune 2>/dev/null | head -n1`\" configpack.configpack.packdir"
 	configpack-configsdir = "!printf '%s/%s\\n' \"`git configpack-packdir`\" \"$(\"`git configpack-packdir`\"/install.sh --get-property=package.configsdir)\""
+	configpack-libexecdir = "!printf '%s/%s\\n' \"`git configpack-packdir`\" \"$(\"`git configpack-packdir`\"/install.sh --get-property=package.libexecdir)\""
 	configpack-reconfig   = "!exec \"`git configpack-packdir`\"/install.sh --reconfig"
 	configpack-newconfig  = "!_newconfig(){ if [[ ! $1 ]]; then echo 'usage: configpack-newconfig CONFIG_NAME' >&2; exit 1; fi; config_path=`git configpack-configsdir`/$1; if [[ ! -e $config_path ]]; then printf '# %s %s\\n[alias]\\n' 'vim:' 'filetype=gitconfig:' > \"$config_path\" && echo \"$config_path\" && git configpack-reconfig; fi; }; _newconfig"
 	configpack-newalias   = "!source \"`git configpack-packdir`\"/install.sh && core_newalias"
