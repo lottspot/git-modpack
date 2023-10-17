@@ -76,3 +76,7 @@ configpacks are installed by executing the `install.sh` installer. E.g.,
 ----
 /tmp/git-foo/install.sh --uninstall
 ----
+
+== Advanced Developer Use Cases ==
+
+See the link:./docs/packdev-reference.adoc[configpack developer reference]
