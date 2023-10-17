@@ -7,6 +7,7 @@ help:
 include packlib-path.mk
 include packlib-env.mk
 include packlib-property.mk
+include installproperties.mk
 
 help:
 	@echo
