@@ -25,8 +25,8 @@ copy_resource()
   local srcpath=$DISTDIR/$name
   mkdir -p "$(dirname "$destpath")"
   sed                                                  \
-    -e "s/%pack_name%/${PROPERTIES['package.name']}/g" \
-    -e "s/%pack_version%/$(cat "$PACKDIR/VERSION")/g"  < "$srcpath" > "$destpath"
+    -e "s,%pack_name%,${PROPERTIES['package.name']},g" \
+    -e "s,%pack_version%,$(cat "$PACKDIR/VERSION"),g"  < "$srcpath" > "$destpath"
   if [[ $(find "$srcpath" -prune -perm -00100 2>/dev/null) ]]; then
     chmod +x "$destpath"
   fi
