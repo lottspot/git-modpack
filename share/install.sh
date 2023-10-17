@@ -351,10 +351,8 @@ ENV_SETS=()
 
 core_newalias()
 {
-  if [[ ! $1 ]]; then
-    printf 'usage: newalias ALIAS_NAME\n' >&2
-    exit 1
-  fi
+  local alias_name=$1
+  local alias_cmd=$2
   local helpdoc=$PACKDIR/docs/help.txt
   local coreconfig=$PACKDIR/$($PACKDIR/install.sh --get-property=package.configsdir)/core
   local awk_prog='
@@ -365,9 +363,18 @@ END {
   printf "%s" sprintf("%%%ds", divcol) "::\n", newalias, ""
 }
 '
-  git config --file="$coreconfig" --add alias."$1" '!false'
+  if [[ ! $alias_name ]]; then
+    printf 'usage: newalias ALIAS_NAME [ALIAS_CMD]\n' >&2
+    exit 1
+  fi
+
+  if ! [[ $alias_cmd ]]; then
+    alias_cmd=!false
+  fi
+
+  git config --file="$coreconfig" --add alias."$alias_name" "$alias_cmd"
   if [[ -w $helpdoc ]]; then
-    awk -v newalias="$1" "$awk_prog" < "$helpdoc" >> "$helpdoc"
+    awk -v newalias="$alias_name" "$awk_prog" < "$helpdoc" >> "$helpdoc"
   fi
 }
 
