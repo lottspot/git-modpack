@@ -17,6 +17,7 @@ packlib-path-relto:
 	source ../share/install.sh && test "`path_relto . ..`" = ./tests
 	source ../share/install.sh && test "`path_relto . .`"  = .
 	source ../share/install.sh && test "`path_relto / /`"  = .
+	source ../share/install.sh && test "`path_relto sub2/filename sub1`" = ../sub2/filename
 	source ../share/install.sh && echo "`path_relto / .`"
 	source ../share/install.sh && echo "`path_relto . /`"
 	source ../share/install.sh && echo "`path_relto / ..`"
