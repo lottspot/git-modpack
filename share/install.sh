@@ -318,6 +318,176 @@ env_file_add()
   done
 }
 
+env_file_strs()
+{
+  local awk_prog='
+BEGIN {
+  if (!strsep) exit 1;
+  WHITESPACE        = " \t\n\r"
+  COMMENTS          = "#;"
+  SHELL_NEED_ESCAPE = "\"\\`$"
+  state             = "PRE_KEY"
+  envstr            = ""
+}
+{
+  buf = $0
+  processing = 1
+  while (processing) {
+    c   = substr(buf, 1, 1)
+    buf = substr(buf, 2)
+    if (ENVIRON["DEBUG"]) print "DEBUG: c=" c | "cat 1>&2"
+    switch (state) {
+    case "PRE_KEY":
+      if (!c) {
+        envstr = ""
+        next
+      }
+      if (index(COMMENTS, c)) {
+        state = "COMMENT"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: COMMENT" | "cat 1>&2"
+      } else if (!index(WHITESPACE, c)) {
+        state  = "KEY"
+        envstr = envstr c
+      }
+      break
+    case "KEY":
+      if (!c) {
+        state  = "PRE_KEY"
+        envstr = ""
+        next
+      } else if (c == "=") {
+        state = "PRE_VALUE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: PRE_VALUE" | "cat 1>&2"
+        sub(/[[:space:]]+$/, "", envstr)
+        envstr = envstr c
+      } else {
+        envstr = envstr c
+      }
+      break
+    case "PRE_VALUE":
+      if (!c) {
+        state  = "PRE_KEY"
+        printf("%s\n%s\n", envstr, strsep)
+        envstr = ""
+        next
+      } else if (c == "'\''") {
+        state = "SINGLE_QUOTE_VALUE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: SINGLE_QUOTE_VALUE" | "cat 1>&2"
+      } else if (c == "\"") {
+        state = "DOUBLE_QUOTE_VALUE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: DOUBLE_QUOTE_VALUE" | "cat 1>&2"
+      } else if (c == "\\") {
+        state = "VALUE_ESCAPE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: VALUE_ESCAPE" | "cat 1>&2"
+      } else if (!index(WHITESPACE, c)) {
+        state = "VALUE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: VALUE" | "cat 1>&2"
+        envstr = envstr c
+      }
+      break
+    case "VALUE":
+      if (!c) {
+        state = "PRE_KEY"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: PRE_KEY" | "cat 1>&2"
+        sub(/[[:space:]]+$/, "", envstr)
+        printf("%s\n%s\n", envstr, strsep)
+        envstr = ""
+        next
+      } else if (c == "\\") {
+        state = "VALUE_ESCAPE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: VALUE_ESCAPE" | "cat 1>&2"
+      } else {
+        envstr = envstr c
+      }
+      break
+    case "VALUE_ESCAPE":
+      state = "VALUE"
+      if (ENVIRON["DEBUG"]) print "DEBUG: enter state: VALUE" | "cat 1>&2"
+      if (!c) {
+        # eat newlines
+        next
+      } else {
+        envstr = envstr c
+      }
+      break
+    case "SINGLE_QUOTE_VALUE":
+      if (!c) {
+        envstr = envstr "\n"
+        next
+      } else if (c == "'\''") {
+        state = "PRE_VALUE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: PRE_VALUE" | "cat 1>&2"
+      } else {
+        envstr = envstr c
+      }
+      break
+    case "DOUBLE_QUOTE_VALUE":
+      if (!c) {
+        envstr = envstr "\n"
+        next
+      } else if (c == "\"") {
+        state = "PRE_VALUE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: PRE_VALUE" | "cat 1>&2"
+      } else if (c == "\\") {
+        state = "DOUBLE_QUOTE_VALUE_ESCAPE"
+        if (ENVIRON["DEBUG"]) print "DEBUG: enter state: DOUBLE_QUOTE_VALUE_ESCAPE" | "cat 1>&2"
+      } else {
+        envstr = envstr c
+      }
+      break
+    case "DOUBLE_QUOTE_VALUE_ESCAPE":
+      state = "DOUBLE_QUOTE_VALUE"
+      if (ENVIRON["DEBUG"]) print "DEBUG: enter state: DOUBLE_QUOTE_VALUE" | "cat 1>&2"
+      if (!c) {
+        next
+      } else if (index(SHELL_NEED_ESCAPE, c)) {
+        envstr = envstr c
+      } else {
+        # keep escape character for values not requiring escape
+        envstr = envstr "\\" c
+      }
+      break
+    case "COMMENT":
+      state = "PRE_KEY"
+      if (ENVIRON["DEBUG"]) print "DEBUG: enter state: PRE_KEY" | "cat 1>&2"
+      envstr = ""
+      next
+    }
+}}
+'
+  for env_file_path in "$@"; do
+
+    if ! [[ -r $env_file_path ]]; then
+      continue
+    fi
+
+    local strsep="$(dd if=/dev/urandom bs=1 count=16 status=none | od -A n -t x1 | tr -d '[:space:]')"
+
+    while grep "$strsep" "$env_file_path" &>/dev/null; do
+      strsep="$(dd if=/dev/urandom bs=1 count=16 status=none | od -A n -t x1 | tr -d '[:space:]')"
+    done
+
+    local ichunk=0
+    while IFS= read -r -d $'\n' chunk; do
+      ichunk=`expr $ichunk + 1`
+
+      if   [[ $chunk == $strsep ]]; then
+        printf '\0'
+        ichunk=0
+        continue
+      fi
+
+      if [[ $ichunk -gt 1 ]]; then
+        printf '\n%s' "$chunk"
+      else
+        printf '%s' "$chunk"
+      fi
+
+    done <<< "$(awk -v "strsep=$strsep" "$awk_prog" < "$env_file_path")"
+
+  done
+}
+
 env_set_add()
 {
   for env_set in "$@"; do

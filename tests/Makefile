@@ -6,6 +6,7 @@ help:
 
 include packlib-path.mk
 include packlib-env.mk
+include packlib-envfile.mk
 include packlib-property.mk
 include installproperties.mk
 
