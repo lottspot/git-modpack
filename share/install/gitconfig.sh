@@ -30,5 +30,10 @@ locate_gitconfig()
     cut -d$'\t' -f1                                                              |
     sed -E 's/^file:(.*)/\1/g'
   )`
+
+  if ! [[ $INSTALL_GITCONFIG_DIR =~ ^/.* ]]; then
+    INSTALL_GITCONFIG_DIR=$(path_norm "`git rev-parse --show-toplevel`/$INSTALL_GITCONFIG_DIR")
+  fi
+
   git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpacktmp.$tmpkey
 }
