@@ -26,7 +26,16 @@ help:
 	@echo
 
 suites: $(SUITES)
+$(TESTS): version
+
+version:
+	git describe --tags HEAD > ../VERSION
+
+clean:
+	rm -f ../VERSION
 
 .PHONY: suites
+.PHONY: version
+.PHONY: clean
 .PHONY: $(SUITES)
 .PHONY: $(TESTS)

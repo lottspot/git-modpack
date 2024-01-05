@@ -7,10 +7,23 @@ if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   prog_return=1
 fi
 
-prog_template=$prog_dir/share/install.sh
 prog_properties=$prog_dir/install.properties
+prog_srcs=(
+  "$prog_dir/share/install/header.sh"
+  "$prog_dir/share/install/defaults.sh"
+  "$prog_dir/share/install/packlib.sh"
+  "$prog_dir/share/install/packcore.sh"
+  "$prog_dir/share/install/sourceguard.sh"
+  "$prog_dir/share/install/gitconfig.sh"
+  "$prog_dir/share/install/mode.sh"
+  "$prog_dir/share/install/template.sh"
+  "$prog_dir/share/install/main.sh"
+)
 
-source "$prog_template"
+# source all fragments prior to sourceguard
+for src in "${prog_srcs[@]:0:4}"; do
+  source "$src"
+done
 
 if [[ $prog_return ]]; then
   PACKDIR=$prog_dir
@@ -21,5 +34,5 @@ fi
 properties_load "$prog_properties"
 exec bash -c "$(sed                                  \
   -e "s,%pack_name%,${PROPERTIES['package.name']},g" \
-  -e "s,%pack_version%,$(cat "$prog_dir/VERSION"),g"  < "$prog_template"
+  -e "s,%pack_version%,$(cat "$prog_dir/VERSION"),g"  <<< "`cat "${prog_srcs[@]}"`"
   )" "$(path_realpath "$0")" "$@"

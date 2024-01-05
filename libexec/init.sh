@@ -33,8 +33,23 @@ copy_resource()
   printf '+ %s\n' "${destpath#$NEWPACK_DESTPATH/}"
 }
 
+combine_resources()
+{
+  local destpath=$1
+  shift
+  local srcpaths=( "${@/#/$DISTDIR/}" )
+  mkdir -p "$(dirname "$destpath")"
+  sed                                                  \
+    -e "s,%pack_name%,${PROPERTIES['package.name']},g" \
+    -e "s,%pack_version%,$(cat "$PACKDIR/VERSION"),g"  <<< "`cat "${srcpaths[@]}" 2>/dev/null`" > "$destpath"
+  if [[ $(find "${srcpaths[@]}" -prune -perm -00100 2>/dev/null) ]]; then
+    chmod +x "$destpath"
+  fi
+  printf '+ %s\n' "${destpath#$NEWPACK_DESTPATH/}"
+}
 
-source "$(git configpack-packdir)/share/install.sh"
+
+source "$(git configpack-packdir)/install.sh"
 PACKDIR=$(git configpack-packdir)
 ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 
@@ -76,7 +91,17 @@ declare -A configs=(
 )
 
 declare -A resources=(
-  [install.sh]=install.sh
+  [install.sh]="
+    install/header.sh
+    install/defaults.sh
+    install/packlib.sh
+    install/packcore.sh
+    install/sourceguard.sh
+    install/gitconfig.sh
+    install/mode.sh
+    install/template.sh
+    install/main.sh
+  "
   [docs/help.txt]=help.txt
 )
 
@@ -114,7 +139,7 @@ if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
 fi
 
 for conf_name in "${!configs[@]}"; do
-  resource_name=${configs[$conf_name]}
+  conf_srcs=( ${configs[$conf_name]} )
   package_configsdir=${PROPERTIES['package.configsdir']}
 
   if [[ $package_configsdir ]]; then
@@ -124,14 +149,23 @@ for conf_name in "${!configs[@]}"; do
   fi
 
   if [[ ! -e $conf_path ]]; then
-    copy_resource "$resource_name" "$conf_path"
+    if [[ ${#conf_srcs[*]} -gt 1 ]]; then
+      combine_resources "$conf_path" "${conf_srcs[@]}"
+    else
+      copy_resource "${conf_srcs[0]}" "$conf_path"
+    fi
   fi
 done
 
 for resource_pathleaf in "${!resources[@]}"; do
   resource_name=${resources[$resource_pathleaf]}
+  resource_srcs=( ${resources[$resource_pathleaf]} )
   resource_path=$NEWPACK_DESTPATH/$resource_pathleaf
   if [[ ! -e $resource_path ]]; then
-    copy_resource "$resource_name" "$resource_path"
+    if [[ ${#resource_srcs[*]} -gt 1 ]]; then
+      combine_resources "$resource_path" "${resource_srcs[@]}"
+    else
+      copy_resource "${resource_srcs[0]}" "$resource_path"
+    fi
   fi
 done
