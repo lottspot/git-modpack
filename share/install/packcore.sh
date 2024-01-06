@@ -47,7 +47,7 @@ alias program %alias_name%
 --
   Options:
 h             show the help
-echo?CONTENT  print <CONTENT> and immediately exit
+echo!?CONTENT  print <CONTENT> and immediately exit
 "
 
 eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"

@@ -8,9 +8,9 @@ Create skeleton for a new configpack project
 --
   Options:
 h                   show the help
-n,name=             package name (defaults to directory name)
-p,property=key-val  install property
-t,template          convenience option for: -n %pack_name%
+n,name!=            package name (defaults to directory name)
+p,property!=key-val install property
+t,template!         convenience option for: -n %pack_name%
 "
 
 die(){
