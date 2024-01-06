@@ -1,6 +1,7 @@
-SHELL  := bash
-SUITES :=
-TESTS  :=
+SHELL     := bash
+SUITES    :=
+TESTS     :=
+CACHEDIRS :=
 
 help:
 
@@ -34,9 +35,11 @@ $(TESTS): setup
 
 setup:
 	git describe --tags HEAD > ../VERSION
+	$(if $(CACHEDIRS),mkdir -p $(CACHEDIRS))
 
 teardown:
 	rm -f ../VERSION
+	$(if $(CACHEDIRS),rm -rf $(CACHEDIRS))
 
 clean: teardown
 
