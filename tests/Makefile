@@ -1,7 +1,9 @@
-SHELL     := bash
-SUITES    :=
-TESTS     :=
-CACHEDIRS :=
+SHELL          := bash
+SUITES         :=
+TESTS          :=
+CACHEDIRS      :=
+REQUIRES_SETUP :=
+TEARDOWN       :=
 
 help:
 
@@ -32,12 +34,13 @@ help:
 
 suites: $(SUITES)
 $(TESTS): setup
+$(REQUIRES_SETUP): setup
 
 setup:
 	git describe --tags HEAD > ../VERSION
 	$(if $(CACHEDIRS),mkdir -p $(CACHEDIRS))
 
-teardown:
+teardown: $(TEARDOWN)
 	rm -f ../VERSION
 	$(if $(CACHEDIRS),rm -rf $(CACHEDIRS))
 
