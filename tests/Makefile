@@ -12,9 +12,13 @@ include installproperties.mk
 
 help:
 	@echo
-	@echo   'usage: make [suites|<SUITE>|<TEST>]...                              '
+	@echo   'usage: make [<ACTION>|<SUITE>|<TEST>]...                            '
 	@echo   '                                                                    '
-	@echo   '    suites - run all suites                                         '
+	@echo   'Actions:                                                            '
+	@echo   '                                                                    '
+	@echo   '    suites   - run all suites                                       '
+	@echo   '    setup    - initialize local environment                         '
+	@echo   '    teardown - cleanup local environment                            '
 	@echo   '                                                                    '
 	@echo   'Suites:                                                             '
 	@echo   '                                                                    '
@@ -26,16 +30,19 @@ help:
 	@echo
 
 suites: $(SUITES)
-$(TESTS): version
+$(TESTS): setup
 
-version:
+setup:
 	git describe --tags HEAD > ../VERSION
 
-clean:
+teardown:
 	rm -f ../VERSION
 
+clean: teardown
+
 .PHONY: suites
-.PHONY: version
+.PHONY: setup
+.PHONY: teardown
 .PHONY: clean
 .PHONY: $(SUITES)
 .PHONY: $(TESTS)
