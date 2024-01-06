@@ -12,6 +12,7 @@ include packlib-env.mk
 include packlib-envfile.mk
 include packlib-property.mk
 include installproperties.mk
+include configpack-init.mk
 
 help:
 	@echo
