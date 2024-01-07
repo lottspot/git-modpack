@@ -9,6 +9,7 @@
 #   * `env_str_add      VAR=VAL...`
 #   * `env_file_add     PATH...`
 #   * `env_seq_setup`
+#   * `env_exec         ARGV...`
 #   * `${ENV_SEQ[*]}`
 # property::
 #   * `property_add     KEY VAL`

@@ -375,6 +375,12 @@ env_seq_setup()
   ENV_SEQ=( "${env_files_seq[@]}" "${ENV_STRS[@]}" )
 }
 
+env_exec()
+{
+  exec env `test "$ENV_IGNORE_ENVIRON" && printf -- '-i'` "${ENV_SEQ[@]}" "$@"
+}
+
 ENV_SEQ=()
 ENV_FILES=()
 ENV_STRS=()
+test "$ENV_IGNORE_ENVIRON" || ENV_IGNORE_ENVIRON=
