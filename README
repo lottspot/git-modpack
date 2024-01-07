@@ -1,8 +1,7 @@
 // vim: filetype=asciidoc:
 = git-configpack =
 
-Create suites of git aliases which may be either embedded in a git project or
-globally installed into a user's `.gitconfig`.
+Content packages for the git runtime
 
 == Installation ==
 
