@@ -112,120 +112,73 @@ path_norm()
   printf '%s\n' "$pathbase$pathstem"
 }
 
-_path_strip_base()
+path_relfrom()
 {
-  local patharg=$1
-  local pathbase=$2
-  printf '%s\n' "${patharg#$pathbase}"
-}
+  local dest_path=$1
+  local dest_norm=$(path_norm "$dest_path")
+  local dest_stem=
+  local origin_dir=$2
+  local origin_norm=$(path_norm "$origin_dir")
+  local origin_stem=
+  local origin_traversal=
+  local stem_i=
 
-_paths_shared_base()
-{
-  local path1=$1
-  local path2=$2
-  awk_prog='
-  BEGIN   { FS = "/"; base_depthsz = 0; }
-  NR == 1 { for (depth = 1; depth <= NF; depth++) { path1[depth] = $depth }; path1_depthsz = NF; }
-  NR == 2 { for (depth = 1; $depth == path1[depth]; depth++) { base[depth] = $depth; base_depthsz++; if (depth+1 > NF || depth+1 > path1_depthsz) break; }}
-  END     {
-    for (depth = 1; depth <= base_depthsz; depth++) {
-      printf("%s", base[depth]);
-      if (depth == 1 && base[depth] == "") {
-	printf "/"
-      }
-      else if ((depth+1) <= base_depthsz) {
-	printf "/"
-      }
-    }
-    if (base_depthsz > 0) printf "\n";
-  }
-'
-  awk "$awk_prog" <<-EOF
-	$path1
-	$path2
-	EOF
-}
+  local maxlen=
+  if [[ ${#dest_norm} -gt ${#origin_norm} ]]; then
+    maxlen=${#dest_norm}
+  else
+    maxlen=${#origin_norm}
+  fi
 
-_path_top_relto_stem()
-{
-  local stem=$1
-  awk_prog='
-  BEGIN { FS = "/" }
-        {
-	  for (depth = 1; depth <= NF; depth++)
-	  {
-	    if ($depth && $depth != ".")
-	    {
-	      printf "..";
-	      if ((depth+2) <= NF) printf "/";
-	    }
-	  }
-	  if (NF > 0) printf "\n";
-	}
-'
-  awk "$awk_prog" <<-EOF
-	$stem
-	EOF
-}
+  for (( i=0; i<=maxlen; i++ )); do
 
-path_relto()
-{
-  local path_dest=$1
-  local dir_start=$2
-  local path_dest_norm=
-  local dir_start_norm=
-  local path_base=
-  local stem_dest=
-  local stem_start=
-  local relpath=
-
-  path_dest_norm=$(path_norm "$path_dest")
-  dir_start_norm=$(path_norm "$dir_start")
-  path_base=$(_paths_shared_base "$path_dest_norm" "$dir_start_norm")
-
-  if ! [[ $path_base ]]; then
-    if [[ $DEBUG ]]; then
-      printf 'no shared base between paths: %s, %s\n' "$path_dest_norm" "$path_base_norm" >&2
+    if [[ $i -eq $maxlen ]]; then
+      # paths are equal
+      printf '.\n'
+      return 0
     fi
-    return 1
+
+    local dest_c=${dest_norm:$i:1}
+    local origin_c=${origin_norm:$i:1}
+
+    if [[ $dest_c == / ]] || [[ $origin_c == / ]]; then
+      stem_i=`expr $i + 1`
+    fi
+
+    if [[ ! $dest_c ]] || [[ ! $origin_c ]]; then
+      break
+    fi
+
+    if [[ $dest_c != $origin_c ]]; then
+      break
+    fi
+
+  done
+
+  dest_stem=${dest_norm:$stem_i}
+  origin_stem=${origin_norm:$stem_i}
+
+  local origin_levels=1
+  for (( i=0; i<${#origin_stem}; i++ )); do
+    local c=${origin_stem:$i:1}
+    if [[ $c == / ]]; then
+      origin_levels=`expr $origin_levels + 1`
+    fi
+  done
+
+  for (( i=0; i<$origin_levels; i++ )); do
+    origin_traversal+=../
+  done
+
+  if ! [[ $origin_stem ]]; then
+    origin_traversal=./
   fi
 
-  if [[ $path_base == / ]]; then
-    stem_dest=$path_dest_norm
-    stem_start=$dir_start_norm
-  else
-    stem_dest=$(_path_strip_base "$path_dest_norm" "$path_base")
-    stem_start=$(_path_strip_base "$dir_start_norm" "$path_base")
+  if ! [[ $dest_stem ]]; then
+    origin_traversal=${origin_traversal%/}
   fi
 
-  if [[ $stem_start ]]; then
-    relpath=$(_path_top_relto_stem "$stem_start")
-  else
-    relpath=
-  fi
-
-  if [[ $stem_dest ]] && [[ $stem_start ]]; then
-    relpath+=$(printf '%s' "$stem_dest")
-  elif [[ $stem_dest ]]; then
-    relpath+=$(printf '.%s' "$stem_dest")
-  fi
-
-  if ! [[ $relpath ]]; then
-    relpath=.
-  fi
-
-  if [[ $DEBUG ]]; then
-    echo DEBUG dir_start=$dir_start                       >&2
-    echo DEBUG path_dest=$path_dest                       >&2
-    echo DEBUG dir_start_norm=$dir_start_norm             >&2
-    echo DEBUG path_dest_norm=$path_dest_norm             >&2
-    echo DEBUG path_base=$path_base                       >&2
-    echo DEBUG stem_dest=$stem_dest                       >&2
-    echo DEBUG stem_start=$stem_start                     >&2
-    echo DEBUG relpath=$relpath                           >&2
-  fi
-
-  printf '%s\n' "$relpath"
+  printf '%s%s\n' "$origin_traversal" "$dest_stem"
 }
 
 env_file_add()

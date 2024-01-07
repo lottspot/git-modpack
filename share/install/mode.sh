@@ -10,7 +10,7 @@ mode_install()
   fi
 
   if [[ $local_worktree ]]; then
-    packdir_installpath=$(path_relto "$ABSPACKDIR" "$local_worktree")
+    packdir_installpath=$(path_relfrom "$ABSPACKDIR" "$local_worktree")
   else
     packdir_installpath=$ABSPACKDIR
   fi

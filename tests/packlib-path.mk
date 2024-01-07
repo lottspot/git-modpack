@@ -1,5 +1,5 @@
 libpath_tests += packlib-path-realpath
-libpath_tests += packlib-path-relto
+libpath_tests += packlib-path-relfrom
 SUITES        += packlib-path
 TESTS         += $(libpath_tests)
 
@@ -14,13 +14,14 @@ packlib-path-realpath:
 	$(libpath_run) test "`path_realpath /`" = '/'
 	$(libpath_run) path_realpath /bin
 
-packlib-path-relto:
-	$(libpath_run) test "`path_relto .. .`" = ..
-	$(libpath_run) test "`path_relto . ..`" = ./tests
-	$(libpath_run) test "`path_relto . .`"  = .
-	$(libpath_run) test "`path_relto / /`"  = .
-	$(libpath_run) test "`path_relto sub2/filename sub1`" = ../sub2/filename
-	$(libpath_run) echo "`path_relto / .`"
-	$(libpath_run) echo "`path_relto . /`"
-	$(libpath_run) echo "`path_relto / ..`"
-	$(libpath_run) echo "`path_relto .. /`"
+packlib-path-relfrom:
+	$(libpath_run) test "`path_relfrom .. .`" = ..
+	$(libpath_run) test "`path_relfrom . ..`" = ./tests
+	$(libpath_run) test "`path_relfrom . .`"  = .
+	$(libpath_run) test "`path_relfrom / /`"  = .
+	$(libpath_run) test "`path_relfrom sub2/filename sub1`" = ../sub2/filename
+	$(libpath_run) test "`path_relfrom a b/c`" = ../../a
+	$(libpath_run) echo "`path_relfrom / .`"
+	$(libpath_run) echo "`path_relfrom . /`"
+	$(libpath_run) echo "`path_relfrom / ..`"
+	$(libpath_run) echo "`path_relfrom .. /`"

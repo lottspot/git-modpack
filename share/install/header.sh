@@ -4,7 +4,7 @@
 # path::
 #   * `path_realpath    PATH`
 #   * `path_norm        PATH`
-#   * `path_relto       DEST STARTDIR`
+#   * `path_relfrom     DEST STARTDIR`
 # env::
 #   * `env_set_add      VAR=VAL...`
 #   * `env_file_add     PATH...`

@@ -4,7 +4,7 @@ write_gitconfig()
     test "$config_path" || continue
 
     if ! [[ $ENABLE_INSTALL_ABSPATHS ]]; then
-      config_path=$(path_relto "$config_path" "$INSTALL_GITCONFIG_DIR")
+      config_path=$(path_relfrom "$config_path" "$INSTALL_GITCONFIG_DIR")
     fi
 
     local path_args=("$config_path")
