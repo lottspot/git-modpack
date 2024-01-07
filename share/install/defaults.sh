@@ -12,14 +12,10 @@ default_package_name()
 
 default_install_scope()
 {
-  local gitconfig_scope=
-  local tmpkey=x$(dd if=/dev/urandom bs=1 count=4 status=none | od -A n -t x1 | tr -d '[:space:]')
-  git config --replace-all configpacktmp.$tmpkey true
-  gitconfig_scope=$(
-    git config --get --show-scope configpacktmp.$tmpkey |
-    cut -d$'\t' -f1
-  )
-  git config --unset-all configpacktmp.$tmpkey
-  printf '%s\n' "$gitconfig_scope"
+  if git config --local -l &>/dev/null; then
+    printf 'local\n'
+  else
+    printf 'global\n'
+  fi
 }
 
