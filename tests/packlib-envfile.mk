@@ -1,24 +1,26 @@
+libenvfile_tests += packlib-envfile-strs
 SUITES           += packlib-envfile
-LIBENVFILE_TESTS += packlib-envfile-strs
-TESTS            += $(LIBENVFILE_TESTS)
+TESTS            += $(libenvfile_tests)
 
-packlib-envfile: $(LIBENVFILE_TESTS)
+libenvfile_run := source ../install.sh &&
+
+packlib-envfile: $(libenvfile_tests)
 
 packlib-envfile-strs:
-	if (source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^$$'); then false; fi # empty lines should be excluded
-	if (source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep 'this line started with #'); then false; fi # comments should be excluded
-	if (source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep 'this line started with ;'); then false; fi # comments should be excluded
-	if (source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep 'this line has no equal sign'); then false; fi # invalid definitions should be excluded
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^INNER_WHITESPACE=is preserved$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINING_WHITESPACE=stripped$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^KEYNAME_WHITESPACE=stripped$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINING_DOUBLE_QUOTE=stripped$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINING_SINGLE_QUOTE=stripped$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINED_DOUBLE_QUOTE="preserved"$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep "^CONTAINED_SINGLE_QUOTE='preserved'\$$"
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^ESCAPED_DOUBLE_QUOTE_SHELLCHARS="`\$$$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^ESCAPED_DOUBLE_QUOTE_WHITESPACE=is\\ preserved$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^UNESCAPED_SINGLE_QUOTE_SHELLCHARS="`\$$$$'
-	source ../install.sh && env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^ESCAPED_INNER_WHITESPACE=\\ char stripped$$'
+	if ($(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^$$'); then false; fi # empty lines should be excluded
+	if ($(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep 'this line started with #'); then false; fi # comments should be excluded
+	if ($(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep 'this line started with ;'); then false; fi # comments should be excluded
+	if ($(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep 'this line has no equal sign'); then false; fi # invalid definitions should be excluded
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^INNER_WHITESPACE=is preserved$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINING_WHITESPACE=stripped$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^KEYNAME_WHITESPACE=stripped$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINING_DOUBLE_QUOTE=stripped$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINING_SINGLE_QUOTE=stripped$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^CONTAINED_DOUBLE_QUOTE="preserved"$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep "^CONTAINED_SINGLE_QUOTE='preserved'\$$"
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^ESCAPED_DOUBLE_QUOTE_SHELLCHARS="`\$$$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^ESCAPED_DOUBLE_QUOTE_WHITESPACE=is\\ preserved$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^UNESCAPED_SINGLE_QUOTE_SHELLCHARS="`\$$$$'
+	$(libenvfile_run) env_file_strs ./packlib-envfile.env | tr '\0' '\n' | grep '^ESCAPED_INNER_WHITESPACE=\\ char stripped$$'
 	test "`printf 'MULTILINE_SINGLE_QUOTE=newlines in value\n preserved\n'`" = "`source ../install.sh && env_file_strs ./packlib-envfile.env | while IFS= read -r -d $$'\0' envstr; do echo "$$envstr"; done | sed -n '/^MULTILINE_SINGLE_QUOTE/,+1p'`"
 	test "`printf 'MULTILINE_DOUBLE_QUOTE=newlines in value\n preserved\n'`" = "`source ../install.sh && env_file_strs ./packlib-envfile.env | while IFS= read -r -d $$'\0' envstr; do echo "$$envstr"; done | sed -n '/^MULTILINE_DOUBLE_QUOTE/,+1p'`"
