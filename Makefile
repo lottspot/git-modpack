@@ -12,7 +12,6 @@ $(DIST_NAME):
 		--worktree-attributes \
 		--format=$(DIST_FORMAT) \
 		--prefix=$(PROG)/ \
-		--add-virtual-file=$(PROG)/VERSION:'$(VERSION)'$$'\n' \
 		HEAD
 
 check:

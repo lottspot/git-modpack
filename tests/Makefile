@@ -38,11 +38,9 @@ $(TESTS): setup
 $(REQUIRES_SETUP): setup
 
 setup:
-	git describe --tags HEAD > ../VERSION
 	$(if $(CACHEDIRS),mkdir -p $(CACHEDIRS))
 
 teardown: $(TEARDOWN)
-	rm -f ../VERSION
 	$(if $(CACHEDIRS),rm -rf $(CACHEDIRS))
 
 clean: teardown
