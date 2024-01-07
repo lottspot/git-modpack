@@ -34,6 +34,34 @@ See the https://github.com/lottspot/git-configpack/releases[GitHub releases page
 make dist
 ----
 
+== Use Cases ==
+
+In essence, configpacks are folders of gitconfig fragments paired with a
+convenience script to automatically add them as `include.path` targets in a
+local or global gitconfig. They are equally convenient for containing other
+supporting content, like scripts or documents.
+
+A core trait of configpack content is its reliance on git as a runtime. Due to
+this nature, configpacks are best used to package content which has no
+dependencies beyond those of `git` itself. This notably includes bash scripts,
+leading to some interesting use cases:
+
+- Embed workflows into a project repository. Using configpacks for this use case
+  provides some desirable properties:
+  1. Installable: The workflows are easily installed into the git alias space,
+   providing a use experience closer to an installed program.
+  2. Localized: Aliases are installed into the local git scope, preventing
+   collisions with aliases defined in other projects or defined globally.
+  3. Portable: Building development workflows in a git-configpack makes them
+   reusable across projects and technology stacks, since they become bound to
+   the git runtime rather than project-specific runtimes.
+- Write scripts using more powerful input primitives
+  * Script templates include a skeleton `rev-parse --parseopts` implementation
+  * Packlib provides functions to process gitconfig formatted files as inputs
+  * Packlib provides functions to load additional environ context from files,
+   arguments, gitconfig, or other sources.
+- Share gitconfig values project-wide
+
 == Developing Configpacks ==
 
 The examples below operate on a tmp configpack named `foo`. Replace the name
