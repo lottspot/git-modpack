@@ -1,2 +1,4 @@
+README linguist-language=asciidoc
+README gitlab-language=asciidoc
 .[^A-Z]* export-ignore
 /Makefile export-ignore
