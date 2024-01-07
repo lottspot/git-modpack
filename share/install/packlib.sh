@@ -367,22 +367,12 @@ env_set_add()
 
 env_seq_setup()
 {
-  local env_file_sets=()
-  for env_file_path in "${ENV_FILES[@]}"; do
+  local env_files_seq=()
+  while IFS= read -r -d $'\0' envstr; do
+    env_files_seq+=("$envstr")
+  done < <(env_file_strs "${ENV_FILES[@]}")
 
-    if ! [[ -r $env_file_path ]]; then
-      continue
-    fi
-
-    while read env_file_line; do
-      if [[ $env_file_line =~ ^([[:alnum:]_]+)=(.*)$ ]]; then
-        env_file_sets+=("$env_file_line")
-      fi
-    done < "$env_file_path"
-
-  done
-
-  ENV_SEQ=( "${env_file_sets[@]}" "${ENV_SETS[@]}" )
+  ENV_SEQ=( "${env_files_seq[@]}" "${ENV_SETS[@]}" )
 }
 
 ENV_SEQ=()
