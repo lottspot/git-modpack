@@ -10,6 +10,7 @@
 #   * `env_file_add     PATH...`
 #   * `env_seq_setup`
 #   * `env_exec         ARGV...`
+#   * `env_eval         SHELLSTR...`
 #   * `${ENV_SEQ[*]}`
 # property::
 #   * `property_add     KEY VAL`

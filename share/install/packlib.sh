@@ -380,6 +380,11 @@ env_exec()
   exec env `test "$ENV_IGNORE_ENVIRON" && printf -- '-i'` "${ENV_SEQ[@]}" "$@"
 }
 
+env_eval()
+{
+  env_exec bash -c 'eval "$@"' - "$@"
+}
+
 ENV_SEQ=()
 ENV_FILES=()
 ENV_STRS=()

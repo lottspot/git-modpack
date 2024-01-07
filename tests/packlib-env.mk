@@ -3,6 +3,7 @@ libenv_tests  += packlib-env-addset
 libenv_tests  += packlib-env-setupseq
 libenv_tests  += packlib-env-exportseq
 libenv_tests  += packlib-env-exec
+libenv_tests  += packlib-env-eval
 SUITES        += packlib-env
 TESTS         += $(libenv_tests)
 
@@ -34,3 +35,14 @@ packlib-env-exec:
 		ENV_STRS=(FOO=QUX) && \
 		env_seq_setup && \
 		ENV_IGNORE_ENVIRON=1 env_exec printenv | xargs expr FOO=QUX =
+
+packlib-env-eval:
+	$(libenv_run) \
+		ENV_STRS=(FOO=QUX) && \
+		ENV_FILES=(packlib-env.1.env packlib-env.2.env) && \
+		env_seq_setup && \
+		env_eval 'echo' '$$FOO' | grep QUX
+	$(libenv_run) \
+		ENV_FILES=(packlib-env.1.env packlib-env.2.env) && \
+		env_seq_setup && \
+		env_eval 'echo' '$$FOO' | grep BAZ
