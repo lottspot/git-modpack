@@ -1,7 +1,7 @@
 # vim: filetype=gitconfig:
 [alias]
 	help-%pack_name%         = "!cat `git %pack_name%-packdir`/docs/help.txt 2>/dev/null; true"
-	%pack_name%-packdir      = "!git config --default=\"`find .git/%pack_name% .git-%pack_name% git-%pack_name% \"$HOME\"/.local/share/git-%pack_name% . -prune 2>/dev/null | head -n1`\" configpack.%pack_name%.packdir"
+	%pack_name%-packdir      = "!git config --get configpack.%pack_name%.packdir"
 	%pack_name%-configsdir   = "!printf '%s/%s\\n' \"`git %pack_name%-packdir`\" \"$(\"`git %pack_name%-packdir`\"/install.sh --get-property=package.configsdir)\""
 	%pack_name%-libexecdir   = "!printf '%s/%s\\n' \"`git %pack_name%-packdir`\" \"$(\"`git %pack_name%-packdir`\"/install.sh --get-property=package.libexecdir)\""
 	%pack_name%-reconfig     = "!exec `git %pack_name%-packdir`/install.sh --reconfig"
