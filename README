@@ -12,10 +12,27 @@ Content packages for the git runtime
 
 === steps ===
 
-1. Download and unpack a distribution archive
+1. <<download a release archive>> or <<build a release archive>>
+2. Unpack the release archive
   * By convention, this archive should be unpacked in `$HOME/.local/share`
-2. `$HOME/.local/share/git-configpack/install.sh`
-3. `git help-configpack`
+3. Install the release
+  * `./git-configpack/install.sh`
+4. Validate the installation
+  * `git help-configpack`
+5. Create a configpack
+  * `git configpack-init /tmp/test-configpack`
+
+For more details on building configpacks, see <<Developing Configpacks>>
+
+==== download a release archive ====
+
+See the https://github.com/lottspot/git-configpack/releases[GitHub releases page]
+
+==== build a release archive ====
+
+----
+make dist
+----
 
 == Developing Configpacks ==
 
