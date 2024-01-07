@@ -15,8 +15,13 @@ $(DIST_NAME):
 		--add-virtual-file=$(PROG)/VERSION:'$(VERSION)'$$'\n' \
 		HEAD
 
+check:
+	$(MAKE) -C tests suites
+
 clean:
 	rm -f *.{tar,zip,tar.gz,tgz}
+	$(MAKE) -C tests clean
 
 .PHONY: dist
+.PHONY: check
 .PHONY: clean
