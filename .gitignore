@@ -1,1 +1,5 @@
 VERSION
+*.tar
+*.tar.gz
+*.tgz
+*.zip
