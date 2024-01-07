@@ -358,10 +358,10 @@ BEGIN {
   done
 }
 
-env_set_add()
+env_str_add()
 {
-  for env_set in "$@"; do
-    ENV_SETS+=("$env_set")
+  for env_str in "$@"; do
+    ENV_STRS+=("$env_str")
   done
 }
 
@@ -372,9 +372,9 @@ env_seq_setup()
     env_files_seq+=("$envstr")
   done < <(env_file_strs "${ENV_FILES[@]}")
 
-  ENV_SEQ=( "${env_files_seq[@]}" "${ENV_SETS[@]}" )
+  ENV_SEQ=( "${env_files_seq[@]}" "${ENV_STRS[@]}" )
 }
 
 ENV_SEQ=()
 ENV_FILES=()
-ENV_SETS=()
+ENV_STRS=()

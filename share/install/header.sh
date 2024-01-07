@@ -6,7 +6,7 @@
 #   * `path_norm        PATH`
 #   * `path_relfrom     DEST STARTDIR`
 # env::
-#   * `env_set_add      VAR=VAL...`
+#   * `env_str_add      VAR=VAL...`
 #   * `env_file_add     PATH...`
 #   * `env_seq_setup`
 #   * `${ENV_SEQ[*]}`
