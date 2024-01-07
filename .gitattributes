@@ -1,5 +1,5 @@
-README linguist-language=asciidoc
-README gitlab-language=asciidoc
-VERSION export-subst
-.[^A-Z]* export-ignore
+README    linguist-language=asciidoc
+README    gitlab-language=asciidoc
+VERSION   export-subst
+.[^A-Z]*  export-ignore
 /Makefile export-ignore
