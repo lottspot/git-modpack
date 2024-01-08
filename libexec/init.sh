@@ -103,6 +103,10 @@ declare -A resources=(
     install/main.sh
   "
   [docs/help.txt]=help.txt
+  [VERSION]=maint.version
+  [Makefile]=maint.mk
+  [.gitignore]=maint.gitignore
+  [.gitattributes]=maint.gitattributes
 )
 
 declare -A default_properties=(

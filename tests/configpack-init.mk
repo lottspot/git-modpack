@@ -49,6 +49,9 @@ configpack-init-embedded:
 	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' embedpack-packdir`" | xargs expr `stat -c %i '$(initcmd_embedded_pack)'` = # test embeddedpack-packdir
 	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' embedpack-configsdir`" | xargs expr `stat -c %i '$(initcmd_embedded_pack)/configs'` = # test embeddedpack-configsdir
 	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' embedpack-libexecdir`" | xargs expr `stat -c %i '$(initcmd_embedded_pack)/libexec'` = # test embeddedpack-libexecdir
+	$(initcmd_git) -C '$(initcmd_local_toplevel)' add -A && $(initcmd_git) -C '$(initcmd_local_toplevel)' commit -m 'initial commit'
+	$(MAKE) -C '$(initcmd_embedded_pack)' clean dist
+	find '$(initcmd_embedded_pack)'/git-embedpack-* -type f -exec tar -tf {} git-embedpack/VERSION \; -quit | xargs expr git-embedpack/VERSION '=' # embedpack dist tree HAS version file
 
 configpack-init-setup:
 	printf '[user]\nemail=foo@example.com\nname=Foo Bar\n' > '$(initcmd_gitconfig_path)'

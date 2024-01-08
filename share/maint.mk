@@ -8,11 +8,10 @@ DIST_NAME   := $(RELEASE).$(DIST_FORMAT)
 dist: $(DIST_NAME)
 
 check:
-	$(MAKE) -C tests suites
+	true
 
 clean:
 	rm -f *.{tar,zip,tar.gz,tgz}
-	$(MAKE) -C tests clean
 
 $(DIST_NAME):
 	git archive -o '$@' \
