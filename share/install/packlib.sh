@@ -181,11 +181,26 @@ path_relfrom()
   printf '%s%s\n' "$origin_traversal" "$dest_stem"
 }
 
+_env_seq_setup()
+{
+  local env_files_seq=()
+  while IFS= read -r -d $'\0' envstr; do
+    env_files_seq+=("$envstr")
+  done < <(env_file_strs "${ENV_FILES[@]}")
+
+  ENV_SEQ=( "${env_files_seq[@]}" "${ENV_STRS[@]}" )
+}
+
 env_file_add()
 {
   for env_file_path in "$@"; do
     ENV_FILES+=("$env_file_path")
   done
+}
+
+env_file_reset()
+{
+  ENV_FILES=()
 }
 
 env_file_strs()
@@ -365,18 +380,14 @@ env_str_add()
   done
 }
 
-env_seq_setup()
+env_str_reset()
 {
-  local env_files_seq=()
-  while IFS= read -r -d $'\0' envstr; do
-    env_files_seq+=("$envstr")
-  done < <(env_file_strs "${ENV_FILES[@]}")
-
-  ENV_SEQ=( "${env_files_seq[@]}" "${ENV_STRS[@]}" )
+  ENV_STRS=()
 }
 
 env_exec()
 {
+  _env_seq_setup
   exec env `test "$ENV_IGNORE_ENVIRON" && printf -- '-i'` "${ENV_SEQ[@]}" "$@"
 }
 

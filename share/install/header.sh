@@ -7,11 +7,11 @@
 #   * `path_relfrom     DEST STARTDIR`
 # env::
 #   * `env_str_add      VAR=VAL...`
+#   * `env_str_reset`
 #   * `env_file_add     PATH...`
-#   * `env_seq_setup`
+#   * `env_file_reset`
 #   * `env_exec         ARGV...`
 #   * `env_eval         SHELLSTR...`
-#   * `${ENV_SEQ[*]}`
 # property::
 #   * `property_add     KEY VAL`
 #   * `property_get     KEY`
