@@ -387,7 +387,7 @@ env_str_reset()
 
 env_exec()
 {
-  _env_seq_setup
+  [[ $ENVEXEC_SKIP_SETUP ]] || _env_seq_setup
   exec env `test "$ENV_IGNORE_ENVIRON" && printf -- '-i'` "${ENV_SEQ[@]}" "$@"
 }
 
