@@ -1,5 +1,10 @@
 write_gitconfig()
 {
+  if ! [[ $INSTALL_GITCONFIG_DIR ]]; then
+    export INSTALL_GITCONFIG_DIR
+    locate_gitconfig
+  fi
+
   while read config_path; do
     test "$config_path" || continue
 

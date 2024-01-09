@@ -70,10 +70,14 @@ configpack-init-setup:
 	$(initcmd_git) configpack-init -h | tee /dev/stderr | grep '^usage:' >/dev/null
 
 configpack-init-global-reinstall:
+	cd '$(initcmd_outer_cache)' && $(initcmd_environ) $(SHELL) '$(initcmd_outer_global_pack)'/install.sh --reconfig
+	cd '$(dir $(initcmd_gitconfig_path))' && while read p; do stat "$$p"; done < <($(initcmd_git) config --global --get-all include.path)
 	cd '$(initcmd_outer_cache)' && $(initcmd_environ) $(SHELL) '$(initcmd_outer_global_pack)'/install.sh --reinstall
 	cd '$(dir $(initcmd_gitconfig_path))' && while read p; do stat "$$p"; done < <($(initcmd_git) config --global --get-all include.path)
 
 configpack-init-local-reinstall:
+	cd '$(initcmd_local_toplevel)' && $(initcmd_environ) $(SHELL) '$(initcmd_outer_local_pack)'/install.sh --reconfig
+	cd '$(initcmd_local_toplevel)/.git' && while read p; do stat "$$p"; done < <($(initcmd_git) config --local --get-all include.path)
 	cd '$(initcmd_local_toplevel)' && $(initcmd_environ) $(SHELL) '$(initcmd_outer_local_pack)'/install.sh --reinstall
 	cd '$(initcmd_local_toplevel)/.git' && while read p; do stat "$$p"; done < <($(initcmd_git) config --local --get-all include.path)
 

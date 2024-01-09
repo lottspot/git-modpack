@@ -33,8 +33,6 @@ mode_install()
 
 mode_uninstall()
 {
-  locate_gitconfig
-
   while read hook; do
     ( eval "$hook" )
   done <<< "$(property_get_all 'uninstall.pre')"
