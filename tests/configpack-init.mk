@@ -61,6 +61,6 @@ $(initcmd_local_toplevel): configpack-init-setup
 	$(initcmd_git) init '$@'
 
 $(initcmd_local_pack) $(initcmd_global_pack) $(initcmd_embedded_pack): configpack-init-setup
-	$(initcmd_git) configpack-init '$@'
+	$(initcmd_git) configpack-init --all-resources '$@'
 
 .PHONY: configpack-init-setup

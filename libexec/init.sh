@@ -4,13 +4,15 @@ set -e
 usage_spec="\
 configpack-init [options] [-n|--name] PATH
 
-Create skeleton for a new configpack project
+Create a new configpack tree
 --
   Options:
 h                   show the help
 n,name!=            package name (defaults to directory name)
 p,property!=key-val install property
 t,template!         convenience option for: -n %pack_name%
+a,all-resources!    include all optional resources in the configpack
+with-maint!         include maintainer infrastructure in the configpack
 "
 
 die(){
@@ -65,7 +67,11 @@ until [[ $1 == '--' ]]; do
       propval=${opt_arg#*=}
       PROPERTIES[$propkey]=$propval
     ;;
-  --template  ) pack_is_template=1;;
+  --template      ) pack_is_template=1;;
+  --with-maint    ) pack_wants_maint=1;;
+  --all-resources )
+    pack_wants_maint=1
+    ;;
   esac
   shift
 done
@@ -103,11 +109,14 @@ declare -A resources=(
     install/main.sh
   "
   [docs/help.txt]=help.txt
-  [VERSION]=maint.version
-  [Makefile]=maint.mk
-  [.gitignore]=maint.gitignore
-  [.gitattributes]=maint.gitattributes
 )
+
+if [[ $pack_wants_maint ]]; then
+  resources[VERSION]=maint.version
+  resources[Makefile]=maint.mk
+  resources[.gitignore]=maint.gitignore
+  resources[.gitattributes]=maint.gitattributes
+fi
 
 declare -A default_properties=(
   ['package.configsdir']=configs
@@ -161,10 +170,9 @@ for conf_name in "${!configs[@]}"; do
   fi
 done
 
-for resource_pathleaf in "${!resources[@]}"; do
-  resource_name=${resources[$resource_pathleaf]}
-  resource_srcs=( ${resources[$resource_pathleaf]} )
-  resource_path=$NEWPACK_DESTPATH/$resource_pathleaf
+for pack_subpath in "${!resources[@]}"; do
+  resource_srcs=( ${resources[$pack_subpath]} )
+  resource_path=$NEWPACK_DESTPATH/$pack_subpath
   if [[ ! -e $resource_path ]]; then
     if [[ ${#resource_srcs[*]} -gt 1 ]]; then
       combine_resources "$resource_path" "${resource_srcs[@]}"
