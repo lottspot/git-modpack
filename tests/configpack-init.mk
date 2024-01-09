@@ -16,10 +16,10 @@ initcmd_embedded_pack      := $(initcmd_local_toplevel)/git-embedpack
 initcmd_gitconfig_path     := $(initcmd_local_cache)/global.gitconfig
 initcmd_environ            := GIT_CONFIG_GLOBAL='$(initcmd_gitconfig_path)' GIT_DIR='$(initcmd_local_toplevel)/.git'
 initcmd_git                := $(initcmd_environ) git
-initcmd_top_installsh      := $(initcmd_environ) '$(CURDIR)/../install.sh'
-initcmd_global_installsh   := $(initcmd_environ) '$(initcmd_global_pack)/install.sh'
-initcmd_local_installsh    := $(initcmd_environ) '$(initcmd_local_pack)/install.sh'
-initcmd_embedded_installsh := $(initcmd_environ) '$(initcmd_embedded_pack)/install.sh'
+initcmd_top_installsh      := $(initcmd_environ) $(SHELL) '$(CURDIR)/../install.sh'
+initcmd_global_installsh   := $(initcmd_environ) $(SHELL) '$(initcmd_global_pack)/install.sh'
+initcmd_local_installsh    := $(initcmd_environ) $(SHELL) '$(initcmd_local_pack)/install.sh'
+initcmd_embedded_installsh := $(initcmd_environ) $(SHELL) '$(initcmd_embedded_pack)/install.sh'
 
 configpack-init          : $(initcmd_tests)
 configpack-init-global   : $(initcmd_global_pack)
@@ -56,11 +56,12 @@ configpack-init-embedded:
 configpack-init-setup:
 	printf '[user]\nemail=foo@example.com\nname=Foo Bar\n' > '$(initcmd_gitconfig_path)'
 	$(initcmd_top_installsh)
+	$(initcmd_git) configpack-init -h | tee /dev/stderr | grep '^usage:' >/dev/null
 
 $(initcmd_local_toplevel): configpack-init-setup
 	$(initcmd_git) init '$@'
 
 $(initcmd_local_pack) $(initcmd_global_pack) $(initcmd_embedded_pack): configpack-init-setup
-	$(initcmd_git) configpack-init --all-resources '$@'
+	$(initcmd_environ) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$@'
 
 .PHONY: configpack-init-setup
