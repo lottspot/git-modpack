@@ -144,7 +144,7 @@ done
 # validate install.mode value
 install_mode=${PROPERTIES['install.mode']}
 if [[ $install_mode ]]; then
-  $DISTDIR/install.sh --with-property "install.mode=$install_mode" --get-property install.mode >/dev/null
+  "$(git configpack-packdir)/install.sh" --with-property "install.mode=$install_mode" --get-property install.mode >/dev/null
 fi
 
 if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
