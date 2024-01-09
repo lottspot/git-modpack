@@ -28,6 +28,7 @@ install script for %pack_name% package
   Options:
 h,help!                  show the help
 version!                 print the version number and exit
+libdoc!                  print the packlib synopsis and exit
 uninstall!               remove an installation created by this script
 reinstall!               perform an uninstall -> install sequence
 c,reconfigure!           (re-)create git config includes of sources in configsdir
@@ -37,7 +38,6 @@ local!                   convenience option for -p install.scope=local
 i,list-properties!       list all install.properties values
 k,get-property!=key      lookup an install.properties value
 p,with-property!=key-val override an install.properties value for this invocation
-libdoc!                  print the packlib synopsis
 "
 
 input_error()
