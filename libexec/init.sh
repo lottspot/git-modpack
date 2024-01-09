@@ -148,7 +148,9 @@ if [[ $install_mode ]]; then
 fi
 
 if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
-  properties_write "$PACK_PROPERTIES_PATH"
+  # explicitly specify PACK_PATH so properties_write knows how
+  # to print a stripped resource path
+  PACK_PATH=$NEWPACK_DESTPATH properties_write "$PACK_PROPERTIES_PATH"
 fi
 
 for conf_name in "${!configs[@]}"; do
