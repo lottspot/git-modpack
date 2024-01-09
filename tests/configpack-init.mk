@@ -1,57 +1,58 @@
-initcmd_tests        += configpack-init-global
-initcmd_tests        += configpack-init-local
-initcmd_tests        += configpack-init-embedded
-initcmd_local_cache  += $(CURDIR)/.cache/configpack-init
-initcmd_global_cache += $(HOME)/.cache/git-configpack-tests
+initcmd_tests        += configpack-init-outer-global
+initcmd_tests        += configpack-init-outer-local
+initcmd_tests        += configpack-init-inner-local
+initcmd_inner_cache  += $(CURDIR)/.cache/configpack-init
+initcmd_outer_cache  += $(HOME)/.cache/git-configpack-tests
 
 SUITES               += configpack-init
 TESTS                += $(initcmd_tests)
-CACHEDIRS            += '$(initcmd_local_cache)' '$(initcmd_global_cache)'
+CACHEDIRS            += '$(initcmd_inner_cache)' '$(initcmd_outer_cache)'
 REQUIRES_SETUP       += configpack-init-setup
 
-initcmd_global_pack        := $(initcmd_global_cache)/git-globalpack
-initcmd_local_pack         := $(initcmd_local_cache)/git-localpack
-initcmd_local_toplevel     := $(initcmd_local_cache)/project
-initcmd_embedded_pack      := $(initcmd_local_toplevel)/git-embedpack
-initcmd_gitconfig_path     := $(initcmd_local_cache)/global.gitconfig
-initcmd_environ            := GIT_CONFIG_GLOBAL='$(initcmd_gitconfig_path)' GIT_DIR='$(initcmd_local_toplevel)/.git'
-initcmd_git                := $(initcmd_environ) git
-initcmd_top_installsh      := $(initcmd_environ) $(SHELL) '$(CURDIR)/../install.sh'
-initcmd_global_installsh   := $(initcmd_environ) $(SHELL) '$(initcmd_global_pack)/install.sh'
-initcmd_local_installsh    := $(initcmd_environ) $(SHELL) '$(initcmd_local_pack)/install.sh'
-initcmd_embedded_installsh := $(initcmd_environ) $(SHELL) '$(initcmd_embedded_pack)/install.sh'
+initcmd_local_toplevel    := $(initcmd_inner_cache)/project
+initcmd_gitconfig_path    := $(initcmd_inner_cache)/global.gitconfig
+initcmd_outer_global_pack := $(initcmd_outer_cache)/git-outer-global
+initcmd_outer_local_pack  := $(initcmd_inner_cache)/git-outer-local
+initcmd_inner_local_pack  := $(initcmd_local_toplevel)/git-inner-local
 
-configpack-init          : $(initcmd_tests)
-configpack-init-global   : $(initcmd_global_pack)
-configpack-init-local    : $(initcmd_local_pack)
-configpack-init-local    : $(initcmd_local_toplevel)
-configpack-init-embedded : $(initcmd_embedded_pack)
-$(initcmd_tests)         : configpack-init-setup
-$(initcmd_embedded_pack) : $(initcmd_local_toplevel)
+configpack-init              : $(initcmd_tests)
+configpack-init-outer-global : $(initcmd_outer_global_pack)
+configpack-init-outer-local  : $(initcmd_outer_local_pack)
+configpack-init-outer-local  : $(initcmd_local_toplevel)
+configpack-init-inner-local  : $(initcmd_inner_local_pack)
+$(initcmd_tests)             : configpack-init-setup
+$(initcmd_inner_local_pack)  : $(initcmd_local_toplevel)
 
-configpack-init-global:
-	( cd '$(initcmd_global_cache)' && $(initcmd_global_installsh) )
-	$(initcmd_git) -C '$(initcmd_global_cache)' help-globalpack
-	stat -c %i "`$(initcmd_git) -C '$(initcmd_global_cache)' globalpack-packdir`" | xargs expr `stat -c %i '$(initcmd_global_pack)'` = # test globalpack-packdir
-	stat -c %i "`$(initcmd_git) -C '$(initcmd_global_cache)' globalpack-configsdir`" | xargs expr `stat -c %i '$(initcmd_global_pack)/configs'` = # test globalpack-configsdir
-	stat -c %i "`$(initcmd_git) -C '$(initcmd_global_cache)' globalpack-libexecdir`" | xargs expr `stat -c %i '$(initcmd_global_pack)/libexec'` = # test globalpack-libexecdir
+initcmd_environ                := GIT_CONFIG_GLOBAL='$(initcmd_gitconfig_path)' GIT_DIR='$(initcmd_local_toplevel)/.git'
+initcmd_git                    := $(initcmd_environ) git
+initcmd_top_installsh          := $(initcmd_environ) $(SHELL) '$(CURDIR)/../install.sh'
+initcmd_outer_global_installsh := $(initcmd_environ) $(SHELL) '$(initcmd_outer_global_pack)/install.sh'
+initcmd_outer_local_installsh  := $(initcmd_environ) $(SHELL) '$(initcmd_outer_local_pack)/install.sh'
+initcmd_inner_local_installsh  := $(initcmd_environ) $(SHELL) '$(initcmd_inner_local_pack)/install.sh'
 
-configpack-init-local:
-	( cd '$(initcmd_local_toplevel)' && $(initcmd_local_installsh) )
-	$(initcmd_git) -C '$(initcmd_local_toplevel)' help-localpack
-	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' localpack-packdir`" | xargs expr `stat -c %i '$(initcmd_local_pack)'` = # test localpack-packdir
-	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' localpack-configsdir`" | xargs expr `stat -c %i '$(initcmd_local_pack)/configs'` = # test localpack-configsdir
-	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' localpack-libexecdir`" | xargs expr `stat -c %i '$(initcmd_local_pack)/libexec'` = # test localpack-libexecdir
+configpack-init-outer-global:
+	( cd '$(initcmd_outer_cache)' && $(initcmd_outer_global_installsh) )
+	$(initcmd_git) -C '$(initcmd_outer_cache)' help-outer-global
+	stat -c %i "`$(initcmd_git) -C '$(initcmd_outer_cache)' outer-global-packdir`" | xargs expr `stat -c %i '$(initcmd_outer_global_pack)'` = # test outer-global-packdir
+	stat -c %i "`$(initcmd_git) -C '$(initcmd_outer_cache)' outer-global-configsdir`" | xargs expr `stat -c %i '$(initcmd_outer_global_pack)/configs'` = # test outer-global-configsdir
+	stat -c %i "`$(initcmd_git) -C '$(initcmd_outer_cache)' outer-global-libexecdir`" | xargs expr `stat -c %i '$(initcmd_outer_global_pack)/libexec'` = # test outer-global-libexecdir
 
-configpack-init-embedded:
-	( cd '$(initcmd_local_toplevel)' && $(initcmd_embedded_installsh) )
-	$(initcmd_git) -C '$(initcmd_local_toplevel)' help-embedpack
-	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' embedpack-packdir`" | xargs expr `stat -c %i '$(initcmd_embedded_pack)'` = # test embeddedpack-packdir
-	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' embedpack-configsdir`" | xargs expr `stat -c %i '$(initcmd_embedded_pack)/configs'` = # test embeddedpack-configsdir
-	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' embedpack-libexecdir`" | xargs expr `stat -c %i '$(initcmd_embedded_pack)/libexec'` = # test embeddedpack-libexecdir
+configpack-init-outer-local:
+	( cd '$(initcmd_local_toplevel)' && $(initcmd_outer_local_installsh) )
+	$(initcmd_git) -C '$(initcmd_local_toplevel)' help-outer-local
+	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' outer-local-packdir`" | xargs expr `stat -c %i '$(initcmd_outer_local_pack)'` = # test outer-local-packdir
+	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' outer-local-configsdir`" | xargs expr `stat -c %i '$(initcmd_outer_local_pack)/configs'` = # test outer-local-configsdir
+	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' outer-local-libexecdir`" | xargs expr `stat -c %i '$(initcmd_outer_local_pack)/libexec'` = # test outer-local-libexecdir
+
+configpack-init-inner-local:
+	( cd '$(initcmd_local_toplevel)' && $(initcmd_inner_local_installsh) )
+	$(initcmd_git) -C '$(initcmd_local_toplevel)' help-inner-local
+	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' inner-local-packdir`" | xargs expr `stat -c %i '$(initcmd_inner_local_pack)'` = # test embeddedpack-packdir
+	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' inner-local-configsdir`" | xargs expr `stat -c %i '$(initcmd_inner_local_pack)/configs'` = # test embeddedpack-configsdir
+	cd $(initcmd_local_toplevel) && stat -c %i "`$(initcmd_git) -C '$(initcmd_local_toplevel)' inner-local-libexecdir`" | xargs expr `stat -c %i '$(initcmd_inner_local_pack)/libexec'` = # test embeddedpack-libexecdir
 	$(initcmd_git) -C '$(initcmd_local_toplevel)' add -A && $(initcmd_git) -C '$(initcmd_local_toplevel)' commit -m 'initial commit'
-	$(MAKE) -C '$(initcmd_embedded_pack)' clean dist
-	find '$(initcmd_embedded_pack)'/git-embedpack-* -type f -exec tar -tf {} git-embedpack/VERSION \; -quit | xargs expr git-embedpack/VERSION '=' # embedpack dist tree HAS version file
+	$(MAKE) -C '$(initcmd_inner_local_pack)' clean dist
+	find '$(initcmd_inner_local_pack)'/git-inner-local-* -type f -exec tar -tf {} git-inner-local/VERSION \; -quit | xargs expr git-inner-local/VERSION '=' # inner-local dist tree HAS version file
 
 configpack-init-setup:
 	printf '[user]\nemail=foo@example.com\nname=Foo Bar\n' > '$(initcmd_gitconfig_path)'
@@ -61,7 +62,7 @@ configpack-init-setup:
 $(initcmd_local_toplevel): configpack-init-setup
 	$(initcmd_git) init '$@'
 
-$(initcmd_local_pack) $(initcmd_global_pack) $(initcmd_embedded_pack): configpack-init-setup
+$(initcmd_outer_local_pack) $(initcmd_outer_global_pack) $(initcmd_inner_local_pack): configpack-init-setup
 	$(initcmd_environ) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$@'
 
 .PHONY: configpack-init-setup
