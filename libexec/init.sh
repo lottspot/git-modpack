@@ -141,10 +141,10 @@ for default_name in "${!default_properties[@]}"; do
   fi
 done
 
-# validate install.mode value
-install_mode=${PROPERTIES['install.mode']}
+# validate install.scope value
+install_mode=${PROPERTIES['install.scope']}
 if [[ $install_mode ]]; then
-  "$(git configpack-packdir)/install.sh" --with-property "install.mode=$install_mode" --get-property install.mode >/dev/null
+  "$(git configpack-packdir)/install.sh" --with-property "install.scope=$install_mode" --get-property install.scope >/dev/null
 fi
 
 if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
