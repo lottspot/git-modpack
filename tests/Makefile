@@ -4,6 +4,9 @@ TESTS          :=
 CACHEDIRS      :=
 REQUIRES_SETUP :=
 TEARDOWN       :=
+TOPCACHE       := .cache
+
+CACHEDIRS      += $(TOPCACHE)
 
 help:
 
@@ -33,17 +36,18 @@ help:
 	@printf '    %s                                                            \n' $(TESTS)
 	@echo
 
-suites: $(SUITES)
-$(TESTS): setup
-$(REQUIRES_SETUP): setup
-
-setup:
-	$(if $(CACHEDIRS),mkdir -p $(CACHEDIRS))
+suites            : $(SUITES)
+setup             : $(CACHEDIRS)
+$(TESTS)          : setup
+$(REQUIRES_SETUP) : setup
 
 teardown: $(TEARDOWN)
-	$(if $(CACHEDIRS),rm -rf $(CACHEDIRS))
+	rm -rf $(CACHEDIRS)
 
 clean: teardown
+
+$(CACHEDIRS):
+	mkdir -p '$@'
 
 .PHONY: suites
 .PHONY: setup
