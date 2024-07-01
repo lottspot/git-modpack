@@ -1,0 +1,126 @@
+// vim: filetype=asciidoc:
+= git-configpack =
+
+Content packages for the git runtime
+
+== Installation ==
+
+=== requirements ===
+
+`git`:: The installed version of git should be "recent" (circa 2023). `git-configpack`
+ has not been tested with older installations of git.
+
+=== steps ===
+
+1. <<download a release archive>> or <<build a release archive>>
+2. Unpack the release archive
+  * By convention, this archive should be unpacked in `$HOME/.local/share`
+3. Install the release
+  * `./git-configpack/install.sh`
+4. Validate the installation
+  * `git help-configpack`
+5. Create a configpack
+  * `git configpack-init /tmp/test-configpack`
+
+For more details on building configpacks, see <<Developing Configpacks>>
+
+==== download a release archive ====
+
+See the https://github.com/lottspot/git-configpack/releases[GitHub releases page]
+
+==== build a release archive ====
+
+----
+make dist
+----
+
+== Use Cases ==
+
+In essence, configpacks are folders of gitconfig fragments paired with a
+convenience script to automatically add them as `include.path` targets in a
+local or global gitconfig. They are equally convenient for containing other
+supporting content, like scripts or documents.
+
+A core trait of configpack content is its reliance on git as a runtime. Due to
+this nature, configpacks are best used to package content which has no
+dependencies beyond those of `git` itself. This notably includes bash scripts,
+leading to some interesting use cases:
+
+- Embed workflows into a project repository. Using configpacks for this use case
+  provides some desirable properties:
+  1. Installable: The workflows are easily installed into the git alias space,
+   providing a use experience closer to an installed program.
+  2. Localized: Aliases are installed into the local git scope, preventing
+   collisions with aliases defined in other projects or defined globally.
+  3. Portable: Building development workflows in a git-configpack makes them
+   reusable across projects and technology stacks, since they become bound to
+   the git runtime rather than project-specific runtimes.
+- Write scripts using more powerful input primitives
+  * Script templates include a skeleton `rev-parse --parseopts` implementation
+  * Packlib provides functions to process gitconfig formatted files as inputs
+  * Packlib provides functions to load additional environ context from files,
+   arguments, gitconfig, or other sources.
+- Share gitconfig values project-wide
+
+== Developing Configpacks ==
+
+The examples below operate on a tmp configpack named `foo`. Replace the name
+and location accordingly.
+
+=== create a new configpack ===
+
+----
+git configpack-init /tmp/git-foo
+/tmp/git-foo/install.sh
+----
+
+To validate the installation and view the core aliases, use the help alias:
+
+----
+git help-foo
+----
+
+=== add a new alias to a configpack ===
+
+To add an "echo" alias:
+
+----
+git foo-newalias foo-echo "!echo"
+----
+
+The second argument (`!echo`) is optional, and represents the command which the
+alias will be set to. For more information on alias command format, refer to the
+`alias.*` entry in `git-config(1)`.
+
+=== add a complex alias as an embedded bash script ===
+
+Aliases which require complex logic, escape sequences, or long sequences of
+commands may prove difficult to maintain as values in pack config files.
+For such cases, configpacks provide an "exec alias" convention which provides
+for executing bash scripts as aliases.
+
+----
+git foo-newexecalias foo-script
+----
+
+The location of the newly created script will be written to stdout.
+
+=== distributing and installing configpacks ===
+
+A configpack is distributed as a simple file tree, and can thus be packaged and
+distributed using any archive format or committed within a project tree. All
+configpacks are installed by executing the `install.sh` installer. E.g.,
+
+----
+/tmp/git-foo/install.sh
+----
+
+=== uninstalling configpacks ===
+
+----
+/tmp/git-foo/install.sh --uninstall
+----
+
+== Advanced Developer Use Cases ==
+
+See the link:./docs/packdev-reference.adoc[configpack developer reference]

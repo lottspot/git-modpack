@@ -1,0 +1,10 @@
+# vim: filetype=gitconfig:
+[alias]
+	help-%pack_name%         = "!cat `git %pack_name%-packdir`/docs/help.txt 2>/dev/null; true"
+	%pack_name%-packdir      = "!git config --get configpack.%pack_name%.packdir"
+	%pack_name%-configsdir   = "!printf '%s/%s\\n' \"`git %pack_name%-packdir`\" \"$(\"`git %pack_name%-packdir`\"/install.sh --get-property=package.configsdir)\""
+	%pack_name%-libexecdir   = "!printf '%s/%s\\n' \"`git %pack_name%-packdir`\" \"$(\"`git %pack_name%-packdir`\"/install.sh --get-property=package.libexecdir)\""
+	%pack_name%-reconfig     = "!exec `git %pack_name%-packdir`/install.sh --reconfig"
+	%pack_name%-newconfig    = "!_newconfig(){ if [[ ! $1 ]]; then echo 'usage: %pack_name%-newconfig CONFIG_NAME' >&2; exit 1; fi; config_path=`git %pack_name%-configsdir`/$1; if [[ ! -e $config_path ]]; then printf '# %s %s\\n[alias]\\n' 'vim:' 'filetype=gitconfig:' > \"$config_path\" && echo \"$config_path\" && git %pack_name%-reconfig; fi; }; _newconfig"
+	%pack_name%-newalias     = "!source \"`git %pack_name%-packdir`\"/install.sh && core_newalias"
+	%pack_name%-newexecalias = "!source \"`git %pack_name%-packdir`\"/install.sh && core_newexecalias"

@@ -1,0 +1,3 @@
+help-configpack                    :: show the help
+configpack-version                 :: show the version number
+configpack-init [options|-h] PATH  :: create a new configpack

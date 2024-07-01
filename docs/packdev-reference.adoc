@@ -1,0 +1,62 @@
+= Configpack Developer Reference =
+
+A quick reference for advanced features of configpack development.
+
+== install.properties ==
+
+Every configpack is setup with an `install.properties` which defines package
+properties and default install options.
+
+=== available properties ===
+
+`package.name`       :: _default: [configpack directory]_; The name of the
+  configpack. The last value defined will be used.
+`package.configsdir` :: _default: "."_; A directory path relative to the
+  configpack directory where gitconfigs are contained. The last value defined
+  will be used.
+`package.libexecdir` :: _default: "libexec"_; A directory path relative to the
+  configpack directory where exec alias scripts are contained.
+`install.scope`      :: _default: [current git scope]_; One of "global" or
+  "local". Defines the `git-config` scope into which the configpack should be
+  installed. The last value defined will be used.
+`install.pre`        :: _default: [none]_; A shell command to be evaluated
+  immediately prior to configpack installation. Each value defined will be
+  evaluated in sequence.
+`install.post`       :: _default: [none]_; A shell command to be evaluated
+  immediately after successful configpack installation. Each value defined will
+  be evaluated in sequence.
+`uninstall.pre`      :: _default: [none]_; A shell command to be evaluated
+  immediately prior to configpack uninstallation. Each value defined will be
+  evaluated in sequence.
+`uninstall.post`     :: _default: [none]_; A shell command to be evaluated
+  immediately after configpack uninstallation. Each value defined will be
+  evaluated in sequence.
+
+=== hook environment ===
+
+Notable variables available for use in the hook environment (`install.pre`,
+`install.post`, `uninstall.pre`, `uninstall.post`) include:
+
+* `$PACKDIR`
+* `$ABSPACKDIR`
+* `$INSTALL_SCOPE`
+* `$INSTALL_GITCONFIG_DIR`
+
+In addition to these variables, all packlib functions are available as well.
+
+== Packlib ==
+
+The `install.sh` included with every configpack is also a bash library which
+can provide utility functions to aliases.
+
+=== load into shell environment ===
+
+----
+source "`git <package.name>-packdir`/install.sh"
+----
+
+=== view available functions ===
+
+----
+"`git <package.name>-packdir`/install.sh" --libdoc
+----
