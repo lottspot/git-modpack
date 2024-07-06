@@ -1,35 +1,35 @@
-= Configpack Developer Reference =
+= Modpack Developer Reference =
 
-A quick reference for advanced features of configpack development.
+A quick reference for advanced features of modpack development.
 
 == install.properties ==
 
-Every configpack is setup with an `install.properties` which defines package
+Every modpack is setup with an `install.properties` which defines package
 properties and default install options.
 
 === available properties ===
 
-`package.name`       :: _default: [configpack directory]_; The name of the
-  configpack. The last value defined will be used.
+`package.name`       :: _default: [modpack directory]_; The name of the
+  modpack. The last value defined will be used.
 `package.configsdir` :: _default: "."_; A directory path relative to the
-  configpack directory where gitconfigs are contained. The last value defined
+  modpack directory where gitconfigs are contained. The last value defined
   will be used.
 `package.libexecdir` :: _default: "libexec"_; A directory path relative to the
-  configpack directory where exec alias scripts are contained.
+  modpack directory where exec alias scripts are contained.
 `install.scope`      :: _default: [current git scope]_; One of "global" or
-  "local". Defines the `git-config` scope into which the configpack should be
+  "local". Defines the `git-config` scope into which the modpack should be
   installed. The last value defined will be used.
 `install.pre`        :: _default: [none]_; A shell command to be evaluated
-  immediately prior to configpack installation. Each value defined will be
+  immediately prior to modpack installation. Each value defined will be
   evaluated in sequence.
 `install.post`       :: _default: [none]_; A shell command to be evaluated
-  immediately after successful configpack installation. Each value defined will
+  immediately after successful modpack installation. Each value defined will
   be evaluated in sequence.
 `uninstall.pre`      :: _default: [none]_; A shell command to be evaluated
-  immediately prior to configpack uninstallation. Each value defined will be
+  immediately prior to modpack uninstallation. Each value defined will be
   evaluated in sequence.
 `uninstall.post`     :: _default: [none]_; A shell command to be evaluated
-  immediately after configpack uninstallation. Each value defined will be
+  immediately after modpack uninstallation. Each value defined will be
   evaluated in sequence.
 
 === hook environment ===
@@ -46,7 +46,7 @@ In addition to these variables, all packlib functions are available as well.
 
 == Packlib ==
 
-The `install.sh` included with every configpack is also a bash library which
+The `install.sh` included with every modpack is also a bash library which
 can provide utility functions to aliases.
 
 === load into shell environment ===

@@ -1,6 +1,6 @@
 DIST_FORMAT ?= tar
 
-PROG      := git-configpack
+PROG      := git-modpack
 VERSION   := $(shell git describe --tags --always HEAD)
 RELEASE   := $(PROG)-$(VERSION)
 DIST_NAME := $(RELEASE).$(DIST_FORMAT)

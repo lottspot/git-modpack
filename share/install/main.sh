@@ -29,7 +29,7 @@ until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
   case $opt_name in
-    --version         ) printf '%pack_name%: packaged with git-configpack version %s\n' "$(basename '%pack_version%')"; exit 0;;
+    --version         ) printf '%pack_name%: packaged with git-modpack version %s\n' "$(basename '%pack_version%')"; exit 0;;
     --reconfigure     ) modes+=(reconfigure)              ;;
     --uninstall       ) modes+=(uninstall)                ;;
     --reinstall       ) modes+=(uninstall install)        ;;

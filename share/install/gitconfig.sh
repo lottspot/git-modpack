@@ -29,9 +29,9 @@ write_gitconfig()
 locate_gitconfig()
 {
   local tmpkey=x$(dd if=/dev/urandom bs=1 count=4 status=none | od -A n -t x1 | tr -d '[:space:]')
-  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpacktmp.$tmpkey true
+  git config "${GIT_CONFIG_OPTS[@]}" --replace-all modpacktmp.$tmpkey true
   INSTALL_GITCONFIG_DIR=`dirname $(
-    git config "${GIT_CONFIG_OPTS[@]}" --get --show-origin configpacktmp.$tmpkey |
+    git config "${GIT_CONFIG_OPTS[@]}" --get --show-origin modpacktmp.$tmpkey |
     cut -d$'\t' -f1                                                              |
     sed -E 's/^file:(.*)/\1/g'
   )`
@@ -40,5 +40,5 @@ locate_gitconfig()
     INSTALL_GITCONFIG_DIR=$(path_norm "`git rev-parse --show-toplevel`/$INSTALL_GITCONFIG_DIR")
   fi
 
-  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpacktmp.$tmpkey
+  git config "${GIT_CONFIG_OPTS[@]}" --unset-all modpacktmp.$tmpkey
 }

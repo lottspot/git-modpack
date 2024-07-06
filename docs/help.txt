@@ -1,3 +1,3 @@
-help-configpack                    :: show the help
-configpack-version                 :: show the version number
-configpack-init [options|-h] PATH  :: create a new configpack
+help-modpack                    :: show the help
+modpack-version                 :: show the version number
+modpack-init [options|-h] PATH  :: create a new modpack

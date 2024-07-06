@@ -1,13 +1,13 @@
 # test cases
-initcmd_tests        += configpack-init-outer-global
-initcmd_tests        += configpack-init-inner-local
-initcmd_tests        += configpack-init-inner-global
-initcmd_tests        += configpack-init-global-reinstall
-initcmd_tests        += configpack-init-local-reinstall
+initcmd_tests        += modpack-init-outer-global
+initcmd_tests        += modpack-init-inner-local
+initcmd_tests        += modpack-init-inner-global
+initcmd_tests        += modpack-init-global-reinstall
+initcmd_tests        += modpack-init-local-reinstall
 
 # path definitions
-initcmd_inner_cache          := .cache/configpack-init
-initcmd_outer_cache          := $(HOME)/.cache/git-configpack-tests
+initcmd_inner_cache          := .cache/modpack-init
+initcmd_outer_cache          := $(HOME)/.cache/git-modpack-tests
 initcmd_local_toplevel       := $(initcmd_inner_cache)/project
 initcmd_gitconfig_path       := $(initcmd_inner_cache)/global.gitconfig
 initcmd_outer_global_pack    := $(initcmd_outer_cache)/git-outer-global
@@ -35,25 +35,25 @@ initcmd_stacks      += $(initcmd_stack_inner)
 
 # exports
 
-SUITES               += configpack-init
+SUITES               += modpack-init
 TESTS                += $(initcmd_tests)
 CACHEDIRS            += $(initcmd_cachedirs)
 REQUIRES_SETUP       += $(initcmd_stacks)
 
-configpack-init       : $(initcmd_tests)
+modpack-init       : $(initcmd_tests)
 
 # stack assignment
-configpack-init-outer-global    : $(initcmd_stack_outer)
-configpack-init-inner-global    : $(initcmd_stack_inner)
-configpack-init-inner-local     : $(initcmd_stack_inner)
+modpack-init-outer-global    : $(initcmd_stack_outer)
+modpack-init-inner-global    : $(initcmd_stack_inner)
+modpack-init-inner-local     : $(initcmd_stack_inner)
 $(initcmd_inner_outoftree_pack) : $(initcmd_local_toplevel)
 $(initcmd_inner_global_pack)    : $(initcmd_local_toplevel)
 $(initcmd_inner_embedded_pack)  : $(initcmd_local_toplevel)
 
 # ordering
-configpack-init-global-reinstall : configpack-init-outer-global
-configpack-init-global-reinstall : configpack-init-inner-global
-configpack-init-local-reinstall  : configpack-init-inner-local
+modpack-init-global-reinstall : modpack-init-outer-global
+modpack-init-global-reinstall : modpack-init-inner-global
+modpack-init-local-reinstall  : modpack-init-inner-local
 
 # contexts
 
@@ -68,19 +68,19 @@ initcmd_ctx_outer += $(initcmd_environ)
 
 # tests
 
-configpack-init-outer-global:
+modpack-init-outer-global:
 	test $$(stat -c %i '$(initcmd_outer_global_pack)') -eq $$($(initcmd_ctx_outer) stat -c %i "`$(initcmd_ctx_outer) git outer-global-packdir`")
 	test $$(stat -c %i '$(initcmd_outer_global_pack)/configs') -eq $$($(initcmd_ctx_outer) stat -c %i "`$(initcmd_ctx_outer) git outer-global-configsdir`")
 	test $$(stat -c %i '$(initcmd_outer_global_pack)/libexec') -eq $$($(initcmd_ctx_outer) stat -c %i "`$(initcmd_ctx_outer) git outer-global-libexecdir`")
 
-configpack-init-inner-global:
+modpack-init-inner-global:
 	test $$(stat -c %i '$(initcmd_inner_global_pack)') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-global-packdir`")
 	test $$(stat -c %i '$(initcmd_inner_global_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-global-configsdir`")
 	test $$(stat -c %i '$(initcmd_inner_global_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-global-libexecdir`")
 	$(MAKE) -C '$(initcmd_inner_global_pack)' clean dist
 	find '$(initcmd_inner_global_pack)'/git-inner-global-* -type f -exec tar -tf {} git-inner-global/VERSION \; -quit | xargs expr git-inner-global/VERSION '=' # inner-global dist tree HAS version file
 
-configpack-init-inner-local:
+modpack-init-inner-local:
 	test $$(stat -c %i '$(initcmd_inner_embedded_pack)') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-embedded-packdir`")
 	test $$(stat -c %i '$(initcmd_inner_embedded_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-embedded-configsdir`")
 	test $$(stat -c %i '$(initcmd_inner_embedded_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-embedded-libexecdir`")
@@ -88,13 +88,13 @@ configpack-init-inner-local:
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-configsdir`")
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-libexecdir`")
 
-configpack-init-global-reinstall:
+modpack-init-global-reinstall:
 	$(initcmd_ctx_outer) $(SHELL) '$(initcmd_outer_global_pack)'/install.sh --reconfig
 	cd '$(dir $(initcmd_gitconfig_path))' && while read p; do stat "$$p"; done < <($(initcmd_ctx_outer) git config --global --get-all include.path)
 	$(initcmd_ctx_outer) $(SHELL) '$(initcmd_outer_global_pack)'/install.sh --reinstall
 	cd '$(dir $(initcmd_gitconfig_path))' && while read p; do stat "$$p"; done < <($(initcmd_ctx_outer) git config --global --get-all include.path)
 
-configpack-init-local-reinstall:
+modpack-init-local-reinstall:
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/$(initcmd_inner_outoftree_pack)'/install.sh --reconfig
 	cd '$(initcmd_local_toplevel)/.git' && while read p; do stat "$$p"; done < <($(initcmd_ctx_inner) git config --local --get-all include.path)
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/$(initcmd_inner_outoftree_pack)'/install.sh --reinstall
@@ -112,7 +112,7 @@ $(initcmd_gitconfig_path):
 	printf '\t%s\n' 'email=foo@example.com' >> '$@'
 	printf '\t%s\n' 'name=Foo Bar'          >> '$@'
 	$(initcmd_environ) $(SHELL) '$(CURDIR)/../install.sh'
-	$(initcmd_environ) git configpack-init -h | wc -c | xargs expr
+	$(initcmd_environ) git modpack-init -h | wc -c | xargs expr
 
 $(initcmd_local_toplevel):
 	$(initcmd_environ) git init '$@'

@@ -24,7 +24,7 @@ mode_install()
   done <<< "$(property_get_all 'install.pre')"
 
   write_gitconfig
-  git config "${GIT_CONFIG_OPTS[@]}" --replace-all configpack.$PACKAGE_NAME.packdir "$packdir_installpath"
+  git config "${GIT_CONFIG_OPTS[@]}" --replace-all modpack.$PACKAGE_NAME.packdir "$packdir_installpath"
 
   while read hook; do
     ( eval "$hook" )
@@ -38,7 +38,7 @@ mode_uninstall()
   done <<< "$(property_get_all 'uninstall.pre')"
 
   write_gitconfig --unset
-  git config "${GIT_CONFIG_OPTS[@]}" --unset-all configpack.$PACKAGE_NAME.packdir || true
+  git config "${GIT_CONFIG_OPTS[@]}" --unset-all modpack.$PACKAGE_NAME.packdir || true
 
   while read hook; do
     ( eval "$hook" )

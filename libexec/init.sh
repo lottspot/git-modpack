@@ -2,21 +2,21 @@
 set -e
 
 usage_spec="\
-configpack-init [options] [-n|--name] PATH
+modpack-init [options] [-n|--name] PATH
 
-Create a new configpack tree
+Create a new modpack tree
 --
   Options:
 h                   show the help
 n,name!=            package name (defaults to directory name)
 p,property!=key-val install property
 t,template!         convenience option for: -n %pack_name%
-a,all-resources!    include all optional resources in the configpack
-with-maint!         include maintainer infrastructure in the configpack
+a,all-resources!    include all optional resources in the modpack
+with-maint!         include maintainer infrastructure in the modpack
 "
 
 die(){
-  printf 'configpack-init: fatal: %s\n' "$*" >&2
+  printf 'modpack-init: fatal: %s\n' "$*" >&2
   exit 1
 }
 
@@ -51,8 +51,8 @@ combine_resources()
 }
 
 
-source "$(git configpack-packdir)/install.sh"
-PACKDIR=$(git configpack-packdir)
+source "$(git modpack-packdir)/install.sh"
+PACKDIR=$(git modpack-packdir)
 ABSPACKDIR=$(cd "$PACKDIR" && pwd)
 
 # Parse options
@@ -144,7 +144,7 @@ done
 # validate install.scope value
 install_mode=${PROPERTIES['install.scope']}
 if [[ $install_mode ]]; then
-  "$(git configpack-packdir)/install.sh" --with-property "install.scope=$install_mode" --get-property install.scope >/dev/null
+  "$(git modpack-packdir)/install.sh" --with-property "install.scope=$install_mode" --get-property install.scope >/dev/null
 fi
 
 if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
