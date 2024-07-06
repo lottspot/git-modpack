@@ -34,47 +34,43 @@ See the https://github.com/lottspot/git-modpack/releases[GitHub releases page]
 make dist
 ----
 
+== About ==
+
+`git-modpack` is a git extension which provides a runtime and boilerplate for
+developing other extensions. Extensions built from this toolchain may in turn be
+referred to as "modpacks". An essential feature of every modpack is that it may
+be installed into either a global or a local git context, allowing it to be
+activated inside certain projects while not impacting others.
+
 == Use Cases ==
 
-In essence, modpacks are folders of gitconfig fragments paired with a
-convenience script to automatically add them as `include.path` targets in a
-local or global gitconfig. They are equally convenient for containing other
-supporting content, like scripts or documents.
-
-A core trait of modpack content is its reliance on git as a runtime. Due to
-this nature, modpacks are best used to package content which has no
-dependencies beyond those of `git` itself. This notably includes bash scripts,
-leading to some interesting use cases:
-
-- Embed workflows into a project repository. Using modpacks for this use case
-  provides some desirable properties:
-  1. Installable: The workflows are easily installed into the git alias space,
-   providing a use experience closer to an installed program.
-  2. Localized: Aliases are installed into the local git scope, preventing
-   collisions with aliases defined in other projects or defined globally.
-  3. Portable: Building development workflows in a git-modpack makes them
-   reusable across projects and technology stacks, since they become bound to
-   the git runtime rather than project-specific runtimes.
-- Write scripts using more powerful input primitives
-  * Script templates include a skeleton `rev-parse --parseopts` implementation
-  * Packlib provides functions to process gitconfig formatted files as inputs
-  * Packlib provides functions to load additional environ context from files,
-   arguments, gitconfig, or other sources.
-- Share gitconfig values project-wide
+- Share git aliases (or arbitrary gitconfig) across project contributors
+- Packaging method for project-local workflow scripts
+- Develop branch-aware scripts and behaviors
 
 == Developing Modpacks ==
 
-The examples below operate on a tmp modpack named `foo`. Replace the name
-and location accordingly.
+`git-modpack` provides convenient primitives for developing extensions in bash:
+
+* Script templates which include a skeleton `rev-parse --parseopts` implementation
+* The packlib library, which includes:
+** functions to process gitconfig formatted files as inputs
+** functions to load additional environ context from files,
+   arguments, gitconfig, or other sources.
 
 === create a new modpack ===
 
 ----
 git modpack-init /tmp/git-foo
+----
+
+=== install the modpack ===
+
+----
 /tmp/git-foo/install.sh
 ----
 
-To validate the installation and view the core aliases, use the help alias:
+To validate the installation and view the core aliases, use the help command:
 
 ----
 git help-foo
@@ -109,11 +105,8 @@ The location of the newly created script will be written to stdout.
 
 A modpack is distributed as a simple file tree, and can thus be packaged and
 distributed using any archive format or committed within a project tree. All
-modpacks are installed by executing the `install.sh` installer. E.g.,
-
-----
-/tmp/git-foo/install.sh
-----
+modpacks are installed by executing the `install.sh` installer, like shown in
+<<install the modpack>>.
 
 === uninstalling modpacks ===
 
