@@ -14,6 +14,7 @@ initcmd_outer_global_pack    := $(initcmd_outer_cache)/git-outer-global
 initcmd_inner_outoftree_pack := $(initcmd_inner_cache)/git-inner-outoftree
 initcmd_inner_embedded_pack  := $(initcmd_local_toplevel)/git-inner-embedded
 initcmd_inner_global_pack    := $(initcmd_local_toplevel)/git-inner-global
+initcmd_inner_relpath_pack   := $(initcmd_local_toplevel)/git-inner-relpath
 
 # path groupings
 initcmd_cachedirs += $(initcmd_inner_cache)
@@ -28,6 +29,7 @@ initcmd_stack_inner += $(initcmd_local_toplevel)
 initcmd_stack_inner += $(initcmd_inner_embedded_pack)
 initcmd_stack_inner += $(initcmd_inner_outoftree_pack)
 initcmd_stack_inner += $(initcmd_inner_global_pack)
+initcmd_stack_inner += $(initcmd_inner_relpath_pack)
 
 # stack groupings
 initcmd_stacks      += $(initcmd_stack_outer)
@@ -46,6 +48,7 @@ modpack-init       : $(initcmd_tests)
 modpack-init-outer-global    : $(initcmd_stack_outer)
 modpack-init-inner-global    : $(initcmd_stack_inner)
 modpack-init-inner-local     : $(initcmd_stack_inner)
+modpack-init-inner-relpath   : $(initcmd_stack_inner)
 $(initcmd_inner_outoftree_pack) : $(initcmd_local_toplevel)
 $(initcmd_inner_global_pack)    : $(initcmd_local_toplevel)
 $(initcmd_inner_embedded_pack)  : $(initcmd_local_toplevel)
@@ -87,6 +90,7 @@ modpack-init-inner-local:
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-packdir`")
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-configsdir`")
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-libexecdir`")
+	test -e '$(initcmd_inner_relpath_pack)/install.sh'
 
 modpack-init-global-reinstall:
 	$(initcmd_ctx_outer) $(SHELL) '$(initcmd_outer_global_pack)'/install.sh --reconfig
@@ -105,6 +109,7 @@ modpack-init-local-reinstall:
 $(initcmd_inner_global_pack)                              : $(initcmd_local_toplevel)
 $(initcmd_inner_embedded_pack)                            : $(initcmd_local_toplevel)
 $(initcmd_inner_outoftree_pack_pack)                      : $(initcmd_local_toplevel)
+$(initcmd_inner_relpath_pack)                             : $(initcmd_local_toplevel)
 $(filter-out $(initcmd_gitconfig_path),$(initcmd_stacks)) : $(initcmd_gitconfig_path)
 
 $(initcmd_gitconfig_path):
@@ -132,3 +137,7 @@ $(initcmd_inner_outoftree_pack) $(initcmd_inner_embedded_pack):
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$(CURDIR)/$@'
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/$@/install.sh'
 	$(initcmd_ctx_inner) git help-$(@F:git-%=%) | wc -c | xargs expr
+
+$(initcmd_inner_relpath_pack):
+	mkdir -p '$@'
+	cd '$@' && GIT_CONFIG_GLOBAL='$(CURDIR)/$(initcmd_gitconfig_path)' git modpack-init -n '$(shell basename '$@')' .

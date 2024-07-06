@@ -79,7 +79,7 @@ done
 shift
 
 # Parse operands
-NEWPACK_DESTPATH=$1
+NEWPACK_DESTPATH=${GIT_PREFIX}${1}
 
 # Program run
 
