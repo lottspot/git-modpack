@@ -2,12 +2,12 @@
 
 A quick reference for advanced features of modpack development.
 
-== install.properties ==
+== install.ini ==
 
-Every modpack is setup with an `install.properties` which defines package
-properties and default install options.
+Every modpack is setup with an `install.ini` which defines package
+fields and default install options.
 
-=== available properties ===
+=== available fields ===
 
 `package.name`       :: _default: [modpack directory]_; The name of the
   modpack. The last value defined will be used.

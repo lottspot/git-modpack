@@ -12,12 +12,12 @@
 #   * `env_file_reset`
 #   * `env_exec         ARGV...`
 #   * `env_eval         SHELLSTR...`
-# property::
-#   * `property_add     KEY VAL`
-#   * `property_get     KEY`
-#   * `property_get_all KEY`
-#   * `proprties_load   PATH...`
-#   * `proprties_write  PATH`
+# field::
+#   * `field_add     NAME VAL`
+#   * `field_get     NAME`
+#   * `field_get_all NAME`
+#   * `fields_load   INI_PATH...`
+#   * `fields_write  INI_PATH`
 set -e
 
 install_usage_spec="\
@@ -33,11 +33,11 @@ uninstall!               remove an installation created by this script
 reinstall!               perform an uninstall -> install sequence
 c,reconfigure!           (re-)create git config includes of sources in configsdir
 abspath!                 use absolute paths for values installed into gitconfig
-global!                  convenience option for -p install.scope=global
-local!                   convenience option for -p install.scope=local
-i,list-properties!       list all install.properties values
-k,get-property!=key      lookup an install.properties value
-p,with-property!=key-val override an install.properties value for this invocation
+global!                  convenience option for -i install.scope=global
+local!                   convenience option for -i install.scope=local
+l,list-fields!           list all install.ini fields
+f,get-field!=name        lookup an install.ini field value
+i,ini!=name=val          override an install.ini assignment for this invocation
 "
 
 input_error()

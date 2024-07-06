@@ -21,28 +21,28 @@ mode_install()
 
   while read hook; do
     ( eval "$hook" )
-  done <<< "$(property_get_all 'install.pre')"
+  done <<< "$(field_get_all 'install.pre')"
 
   write_gitconfig
   git config "${GIT_CONFIG_OPTS[@]}" --replace-all modpack.$PACKAGE_NAME.packdir "$packdir_installpath"
 
   while read hook; do
     ( eval "$hook" )
-  done <<< "$(property_get_all 'install.post')"
+  done <<< "$(field_get_all 'install.post')"
 }
 
 mode_uninstall()
 {
   while read hook; do
     ( eval "$hook" )
-  done <<< "$(property_get_all 'uninstall.pre')"
+  done <<< "$(field_get_all 'uninstall.pre')"
 
   write_gitconfig --unset
   git config "${GIT_CONFIG_OPTS[@]}" --unset-all modpack.$PACKAGE_NAME.packdir || true
 
   while read hook; do
     ( eval "$hook" )
-  done <<< "$(property_get_all 'uninstall.post')"
+  done <<< "$(field_get_all 'uninstall.post')"
 }
 
 mode_libdoc()

@@ -23,7 +23,7 @@ write_gitconfig()
     if ! git config "${GIT_CONFIG_OPTS[@]}" --fixed-value "$@" include.path "${path_args[@]}" && [[ $write_op == 'set'  ]]; then
       return 1
     fi
-  done <<< "$(find "$ABSPACKDIR/$PACKAGE_CONFIGSDIR" -maxdepth 1 -mindepth 1 -type f ! -name '.*' ! -name install.sh ! -name install.properties 2>/dev/null)"
+  done <<< "$(find "$ABSPACKDIR/$PACKAGE_CONFIGSDIR" -maxdepth 1 -mindepth 1 -type f ! -name '.*' ! -name install.sh ! -name install.ini 2>/dev/null)"
 }
 
 locate_gitconfig()

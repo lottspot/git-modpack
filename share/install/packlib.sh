@@ -1,64 +1,64 @@
-property_get()
+field_get()
 {
-  local prop_name=$1
-  printf '%s\n' "${PROPERTIES[$prop_name]}" | tail -n1
+  local field_name=$1
+  printf '%s\n' "${_FIELDS[$field_name]}" | tail -n1
 }
 
-property_get_all()
+field_get_all()
 {
-  local prop_name=$1
-  printf '%s\n' "${PROPERTIES[$prop_name]}"
+  local field_name=$1
+  printf '%s\n' "${_FIELDS[$field_name]}"
 }
 
-property_set()
+field_set()
 {
-  local prop_key=$1
-  local prop_val=$2
-  PROPERTIES[$prop_key]=$prop_val
+  local field_name=$1
+  local field_val=$2
+  _FIELDS[$field_name]=$field_val
 }
 
-property_add()
+field_add()
 {
-  local prop_key=$1
-  local prop_val=$2
-  if [[ ${PROPERTIES[$prop_key]} ]]; then
-    PROPERTIES[$prop_key]=$(printf '%s\n%s\n' "${PROPERTIES[$prop_key]}" "$prop_val")
+  local field_name=$1
+  local field_val=$2
+  if [[ ${_FIELDS[$field_name]} ]]; then
+    _FIELDS[$field_name]=$(printf '%s\n%s\n' "${_FIELDS[$field_name]}" "$field_val")
   else
-    PROPERTIES[$prop_key]=$prop_val
+    _FIELDS[$field_name]=$field_val
   fi
 }
 
-properties_load()
+fields_load()
 {
   for loadpath in "$@"; do
-    while read prop_key prop_val; do
-      test "$prop_key" || continue
-      property_add "$prop_key" "$prop_val"
+    while read field_name field_val; do
+      test "$field_name" || continue
+      field_add "$field_name" "$field_val"
     done <<< "$(git config -f "$loadpath" --get-regexp '.*')"
   done
 }
 
-properties_write()
+fields_write()
 {
   local dest=$1
   mkdir -p "$(dirname "$dest")"
   printf '# %s %s\n' 'vim:' 'filetype=gitconfig:' > "$dest"
-  for property in "${!PROPERTIES[@]}"; do
-    local var=$property
-    local val=${PROPERTIES[$property]}
+  for field in "${!_FIELDS[@]}"; do
+    local var=$field
+    local val=${_FIELDS[$field]}
     git config -f "$dest" "$var" "$val"
   done
-  printf '+ %s\n' "${PACK_PROPERTIES_PATH#$PACK_PATH/}"
+  printf '+ %s\n' "${NEWPACK_INI_PATH#$PACK_PATH/}"
 }
 
-properties_dump()
+fields_dump()
 {
-  for prop_name in "${!PROPERTIES[@]}"; do
-    printf '%s %s\n' "$prop_name" "${PROPERTIES[$prop_name]}";
+  for field_name in "${!_FIELDS[@]}"; do
+    printf '%s %s\n' "$field_name" "${_FIELDS[$field_name]}";
   done
 }
 
-properties_list()
+fields_list()
 {
   local awk_prog='
 BEGIN {
@@ -75,10 +75,10 @@ END {
   for (i = 1; i <= NR; i++) printf(fstr, field[i], val[i])
 }
 '
-awk "$awk_prog" <<< "$(properties_dump)"
+awk "$awk_prog" <<< "$(fields_dump)"
 }
 
-declare -A PROPERTIES
+declare -A _FIELDS
 
 path_realpath()
 {

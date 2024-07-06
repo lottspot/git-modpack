@@ -2,8 +2,8 @@
 [alias]
 	help-modpack         = "!cat `git modpack-packdir`/docs/help.txt 2>/dev/null; true"
 	modpack-packdir      = "!git config --default=\"`find .git/modpack .git-modpack git-modpack \"$HOME\"/.local/share/git-modpack . -prune 2>/dev/null | head -n1`\" modpack.modpack.packdir"
-	modpack-configsdir   = "!printf '%s/%s\\n' \"`git modpack-packdir`\" \"$(\"`git modpack-packdir`\"/install.sh --get-property=package.configsdir)\""
-	modpack-libexecdir   = "!printf '%s/%s\\n' \"`git modpack-packdir`\" \"$(\"`git modpack-packdir`\"/install.sh --get-property=package.libexecdir)\""
+	modpack-configsdir   = "!printf '%s/%s\\n' \"`git modpack-packdir`\" \"$(\"`git modpack-packdir`\"/install.sh --get-field=package.configsdir)\""
+	modpack-libexecdir   = "!printf '%s/%s\\n' \"`git modpack-packdir`\" \"$(\"`git modpack-packdir`\"/install.sh --get-field=package.libexecdir)\""
 	modpack-reconfig     = "!exec \"`git modpack-packdir`\"/install.sh --reconfig"
 	modpack-newconfig    = "!_newconfig(){ if [[ ! $1 ]]; then echo 'usage: modpack-newconfig CONFIG_NAME' >&2; exit 1; fi; config_path=`git modpack-configsdir`/$1; if [[ ! -e $config_path ]]; then printf '# %s %s\\n[alias]\\n' 'vim:' 'filetype=gitconfig:' > \"$config_path\" && echo \"$config_path\" && git modpack-reconfig; fi; }; _newconfig"
 	modpack-newalias     = "!source \"`git modpack-packdir`\"/install.sh && core_newalias"

@@ -118,12 +118,12 @@ $(initcmd_local_toplevel):
 	$(initcmd_environ) git init '$@'
 
 $(initcmd_outer_global_pack):
-	$(initcmd_environ) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources -p install.scope=global '$@'
+	$(initcmd_environ) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources -i install.scope=global '$@'
 	cd '$(initcmd_outer_cache)' && $(initcmd_environ) $(SHELL) '$@/install.sh'
 	$(initcmd_ctx_outer) git help-$(@F:git-%=%) | wc -c | xargs expr
 
 $(initcmd_inner_global_pack):
-	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources -p install.scope=global '$(CURDIR)/$@'
+	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources -i install.scope=global '$(CURDIR)/$@'
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/$@/install.sh'
 	$(initcmd_ctx_inner) git help-$(@F:git-%=%) | wc -c | xargs expr
 	if ! [[ `$(initcmd_ctx_inner) git rev-list -1 HEAD --` ]]; then $(initcmd_ctx_inner) git add -A && $(initcmd_ctx_inner) git commit -m 'initial commit'; fi

@@ -1,6 +1,6 @@
 pack_is_template()
 {
-  if grep '[%]pack_name[%]' <<< "${PROPERTIES['package.name']}" >/dev/null; then
+  if grep '[%]pack_name[%]' <<< "${_FIELDS['package.name']}" >/dev/null; then
     return 0
   else
     return 1

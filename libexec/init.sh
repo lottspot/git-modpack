@@ -9,7 +9,7 @@ Create a new modpack tree
   Options:
 h                   show the help
 n,name!=            package name (defaults to directory name)
-p,property!=key-val install property
+i,ini!=name=val     assign install.ini value
 t,template!         convenience option for: -n %pack_name%
 a,all-resources!    include all optional resources in the modpack
 with-maint!         include maintainer infrastructure in the modpack
@@ -27,7 +27,7 @@ copy_resource()
   local srcpath=$DISTDIR/$name
   mkdir -p "$(dirname "$destpath")"
   sed                                                  \
-    -e "s,%pack_name%,${PROPERTIES['package.name']},g" \
+    -e "s,%pack_name%,${_FIELDS['package.name']},g" \
     -e "s,%pack_version%,$(cat "$PACKDIR/VERSION"),g"  < "$srcpath" > "$destpath"
   if [[ $(find "$srcpath" -prune -perm -00100 2>/dev/null) ]]; then
     chmod +x "$destpath"
@@ -42,7 +42,7 @@ combine_resources()
   local srcpaths=( "${@/#/$DISTDIR/}" )
   mkdir -p "$(dirname "$destpath")"
   sed                                                  \
-    -e "s,%pack_name%,${PROPERTIES['package.name']},g" \
+    -e "s,%pack_name%,${_FIELDS['package.name']},g" \
     -e "s,%pack_version%,$(cat "$PACKDIR/VERSION"),g"  <<< "`cat "${srcpaths[@]}" 2>/dev/null`" > "$destpath"
   if [[ $(find "${srcpaths[@]}" -prune -perm -00100 2>/dev/null) ]]; then
     chmod +x "$destpath"
@@ -61,11 +61,11 @@ until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
   opt_arg=${1#*=}
   case $opt_name in
-    --name     ) newpack_name=$opt_arg;;
-    --property )
-      propkey=${opt_arg%%=*}
-      propval=${opt_arg#*=}
-      PROPERTIES[$propkey]=$propval
+    --name ) newpack_name=$opt_arg;;
+    --ini  )
+      field_name=${opt_arg%%=*}
+      field_val=${opt_arg#*=}
+      _FIELDS[$field_name]=$field_val
     ;;
   --template      ) pack_is_template=1;;
   --with-maint    ) pack_wants_maint=1;;
@@ -89,7 +89,7 @@ if ! [[ $NEWPACK_DESTPATH ]]; then
   exit 1
 fi
 
-PACK_PROPERTIES_PATH=$NEWPACK_DESTPATH/install.properties
+NEWPACK_INI_PATH=$NEWPACK_DESTPATH/install.ini
 DISTDIR=$PACKDIR/share
 
 declare -A configs=(
@@ -118,44 +118,44 @@ if [[ $pack_wants_maint ]]; then
   resources[.gitattributes]=maint.gitattributes
 fi
 
-declare -A default_properties=(
+declare -A default_fields=(
   ['package.configsdir']=configs
 )
 
 if [[ $newpack_name ]]; then
-  PROPERTIES['package.name']=$newpack_name
+  _FIELDS['package.name']=$newpack_name
 fi
 
 if [[ $pack_is_template ]]; then
-  PROPERTIES['package.name']=%pack_name%
+  _FIELDS['package.name']=%pack_name%
 fi
 
-if [[ ! ${PROPERTIES['package.name']} ]]; then
-  PROPERTIES['package.name']=$(default_package_name "$NEWPACK_DESTPATH")
+if [[ ! ${_FIELDS['package.name']} ]]; then
+  _FIELDS['package.name']=$(default_package_name "$NEWPACK_DESTPATH")
 fi
 
-for default_name in "${!default_properties[@]}"; do
-  default_val=${default_properties[$default_name]}
-  if [[ ! ${PROPERTIES[$default_name]} ]]; then
-    PROPERTIES[$default_name]=$default_val
+for default_name in "${!default_fields[@]}"; do
+  default_val=${default_fields[$default_name]}
+  if [[ ! ${_FIELDS[$default_name]} ]]; then
+    _FIELDS[$default_name]=$default_val
   fi
 done
 
 # validate install.scope value
-install_mode=${PROPERTIES['install.scope']}
+install_mode=${_FIELDS['install.scope']}
 if [[ $install_mode ]]; then
-  "$(git modpack-packdir)/install.sh" --with-property "install.scope=$install_mode" --get-property install.scope >/dev/null
+  "$(git modpack-packdir)/install.sh" --with-field "install.scope=$install_mode" --get-field install.scope >/dev/null
 fi
 
-if [[ ! -e $PACK_PROPERTIES_PATH ]]; then
-  # explicitly specify PACK_PATH so properties_write knows how
+if [[ ! -e $NEWPACK_INI_PATH ]]; then
+  # explicitly specify PACK_PATH so fields_write knows how
   # to print a stripped resource path
-  PACK_PATH=$NEWPACK_DESTPATH properties_write "$PACK_PROPERTIES_PATH"
+  PACK_PATH=$NEWPACK_DESTPATH fields_write "$NEWPACK_INI_PATH"
 fi
 
 for conf_name in "${!configs[@]}"; do
   conf_srcs=( ${configs[$conf_name]} )
-  package_configsdir=${PROPERTIES['package.configsdir']}
+  package_configsdir=${_FIELDS['package.configsdir']}
 
   if [[ $package_configsdir ]]; then
     conf_path=$NEWPACK_DESTPATH/$package_configsdir/$conf_name

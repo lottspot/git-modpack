@@ -7,7 +7,7 @@ if [[ $BASH_SOURCE ]] && [[ $0 != $BASH_SOURCE ]]; then
   prog_return=1
 fi
 
-prog_properties=$prog_dir/install.properties
+prog_ini=$prog_dir/install.ini
 prog_srcs=(
   "$prog_dir/share/install/header.sh"
   "$prog_dir/share/install/defaults.sh"
@@ -31,8 +31,8 @@ if [[ $prog_return ]]; then
   return 0
 fi
 
-properties_load "$prog_properties"
+fields_load "$prog_ini"
 exec bash -c "$(sed                                  \
-  -e "s,%pack_name%,${PROPERTIES['package.name']},g" \
+  -e "s,%pack_name%,${_FIELDS['package.name']},g" \
   -e "s,%pack_version%,$(cat "$prog_dir/VERSION"),g"  <<< "`cat "${prog_srcs[@]}"`"
   )" "$(path_realpath "$0")" "$@"

@@ -3,7 +3,7 @@ core_newalias()
   local alias_name=$1
   local alias_cmd=$2
   local helpdoc=$PACKDIR/docs/help.txt
-  local coreconfig=$PACKDIR/$($PACKDIR/install.sh --get-property=package.configsdir)/core
+  local coreconfig=$PACKDIR/$($PACKDIR/install.sh --get-field=package.configsdir)/core
   local awk_prog='
 { divcol = index($0, "::") }
 END {
@@ -32,8 +32,8 @@ END {
 core_newexecalias()
 {
   local alias_name=$1
-  local libexecdir=$PACKDIR/$($PACKDIR/install.sh --get-property=package.libexecdir)
-  local package_name=$($PACKDIR/install.sh --get-property=package.name)
+  local libexecdir=$PACKDIR/$($PACKDIR/install.sh --get-field=package.libexecdir)
+  local package_name=$($PACKDIR/install.sh --get-field=package.name)
   local alias_script_name=$alias_name.sh
   local alias_script_path=$libexecdir/$alias_script_name
   local alias_script_skel=$(cat <<'EOF' | sed -E "s,%alias_name%,$alias_name,g"

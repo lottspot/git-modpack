@@ -5,8 +5,8 @@ if readlink "$PACKDIR" &>/dev/null; then
 fi
 
 ABSPACKDIR=$(path_realpath "$PACKDIR")
-properties_path=$PACKDIR/install.properties
-declare -A default_properties=(
+ini_path=$PACKDIR/install.ini
+declare -A default_fields=(
   [package.name]=$(default_package_name "$PACKDIR")
   [package.configsdir]=.
   [package.libexecdir]=libexec
@@ -14,8 +14,8 @@ declare -A default_properties=(
 )
 ENABLE_INSTALL_ABSPATHS=
 
-if [[ -e $properties_path ]]; then
-  properties_load "$properties_path"
+if [[ -e $ini_path ]]; then
+  fields_load "$ini_path"
 fi
 
 usage_spec="\
@@ -34,17 +34,17 @@ until [[ $1 == '--' ]]; do
     --uninstall       ) modes+=(uninstall)                ;;
     --reinstall       ) modes+=(uninstall install)        ;;
     --abspath         ) ENABLE_INSTALL_ABSPATHS=1         ;;
-    --global          ) property_add install.scope global ;;
-    --local           ) property_add install.scope local  ;;
-    --list-properties ) modes+=(list-properties)          ;;
-    --get-property    )
-      modes+=(get-property)
-      get_prop_name=$opt_arg
+    --global          ) field_add install.scope global ;;
+    --local           ) field_add install.scope local  ;;
+    --list-fields     ) modes+=(list-fields)          ;;
+    --get-field       )
+      modes+=(get-field)
+      get_field_name=$opt_arg
     ;;
-    --with-property   )
-      propkey=${opt_arg%%=*}
-      propval=${opt_arg#*=}
-      property_add "$propkey" "$propval"
+    --ini             )
+      field_name=${opt_arg%%=*}
+      field_val=${opt_arg#*=}
+      field_add "$field_name" "$field_val"
     ;;
     --rename          ) pack_rename "$opt_arg" && exit $? ;;
     --libdoc          ) modes+=(libdoc)                   ;;
@@ -52,10 +52,10 @@ until [[ $1 == '--' ]]; do
   shift
 done
 
-for prop_name in "${!default_properties[@]}"; do
-  prop_val=${default_properties[$prop_name]}
-  if [[ ! ${PROPERTIES[$prop_name]} ]]; then
-    PROPERTIES[$prop_name]=$prop_val
+for field_name in "${!default_fields[@]}"; do
+  field_val=${default_fields[$field_name]}
+  if [[ ! ${_FIELDS[$field_name]} ]]; then
+    _FIELDS[$field_name]=$field_val
   fi
 done
 
@@ -63,9 +63,9 @@ if ! [[ $modes ]]; then
   modes=(install)
 fi
 
-PACKAGE_NAME=$(property_get 'package.name')
-PACKAGE_CONFIGSDIR=$(property_get 'package.configsdir')
-INSTALL_SCOPE=$(property_get 'install.scope')
+PACKAGE_NAME=$(field_get 'package.name')
+PACKAGE_CONFIGSDIR=$(field_get 'package.configsdir')
+INSTALL_SCOPE=$(field_get 'install.scope')
 GIT_CONFIG_OPTS=()
 INSTALL_GITCONFIG_DIR=
 
@@ -85,11 +85,11 @@ assert_inputs_valid
 
 for mode in "${modes[@]}"; do
   case $mode in
-    install         ) mode_install                      ;;
-    uninstall       ) mode_uninstall                    ;;
-    reconfigure     ) write_gitconfig                   ;;
-    list-properties ) properties_list                   ;;
-    get-property    ) property_get_all "$get_prop_name" ;;
-    libdoc          ) mode_libdoc                       ;;
+    install     ) mode_install                    ;;
+    uninstall   ) mode_uninstall                  ;;
+    reconfigure ) write_gitconfig                 ;;
+    list-fields ) fields_list                     ;;
+    get-field   ) field_get_all "$get_field_name" ;;
+    libdoc      ) mode_libdoc                     ;;
   esac
 done
