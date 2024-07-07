@@ -10,12 +10,19 @@ declare -A default_fields=(
   [package.name]=$(default_package_name "$PACKDIR")
   [package.configsdir]=.
   [package.libexecdir]=.
-  [install.scope]=$(default_install_scope)
 )
 ENABLE_INSTALL_ABSPATHS=
 
 if [[ -e $ini_path ]]; then
   fields_load "$ini_path"
+fi
+
+# install.scope values are under the exclusive purview of the user
+gitconfig_installscope=$(git config --get git-modpack.installScope 2>/dev/null || true)
+if [[ $gitconfig_installscope ]]; then
+  field_add install.scope "$gitconfig_installscope"
+else
+  field_add install.scope "$(default_install_scope)"
 fi
 
 usage_spec="\

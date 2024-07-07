@@ -112,11 +112,14 @@ $(initcmd_gitconfig_path):
 	printf '%s\n'   '[user]'                 > '$@'
 	printf '\t%s\n' 'email=foo@example.com' >> '$@'
 	printf '\t%s\n' 'name=Foo Bar'          >> '$@'
+	printf '%s\n'   '[git-modpack]'         >> '$@'
+	printf '\t%s\n' 'installScope=global'   >> '$@'
 	$(initcmd_environ) $(SHELL) '$(CURDIR)/../install.sh'
 	$(initcmd_environ) git modpack-init -h | wc -c | xargs expr
 
 $(initcmd_local_toplevel):
 	$(initcmd_environ) git init '$@'
+	$(initcmd_ctx_inner) git config --local git-modpack.installScope ''
 
 $(initcmd_outer_global_pack):
 	$(initcmd_environ) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$@'

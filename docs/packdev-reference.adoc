@@ -16,9 +16,6 @@ fields and default install options.
   will be used.
 `package.libexecdir` :: _default: "libexec"_; A directory path relative to the
   modpack directory where exec alias scripts are contained.
-`install.scope`      :: _default: [current git scope]_; One of "global" or
-  "local". Defines the `git-config` scope into which the modpack should be
-  installed. The last value defined will be used.
 `install.pre`        :: _default: [none]_; A shell command to be evaluated
   immediately prior to modpack installation. Each value defined will be
   evaluated in sequence.
