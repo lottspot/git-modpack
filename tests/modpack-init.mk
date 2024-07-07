@@ -74,22 +74,18 @@ initcmd_ctx_outer += $(initcmd_environ)
 modpack-init-outer-global:
 	test $$(stat -c %i '$(initcmd_outer_global_pack)') -eq $$($(initcmd_ctx_outer) stat -c %i "`$(initcmd_ctx_outer) git outer-global-packdir`")
 	test $$(stat -c %i '$(initcmd_outer_global_pack)/configs') -eq $$($(initcmd_ctx_outer) stat -c %i "`$(initcmd_ctx_outer) git outer-global-configsdir`")
-	test $$(stat -c %i '$(initcmd_outer_global_pack)/libexec') -eq $$($(initcmd_ctx_outer) stat -c %i "`$(initcmd_ctx_outer) git outer-global-libexecdir`")
 
 modpack-init-inner-global:
 	test $$(stat -c %i '$(initcmd_inner_global_pack)') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-global-packdir`")
 	test $$(stat -c %i '$(initcmd_inner_global_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-global-configsdir`")
-	test $$(stat -c %i '$(initcmd_inner_global_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-global-libexecdir`")
 	$(MAKE) -C '$(initcmd_inner_global_pack)' clean dist
 	find '$(initcmd_inner_global_pack)'/git-inner-global-* -type f -exec tar -tf {} git-inner-global/VERSION \; -quit | xargs expr git-inner-global/VERSION '=' # inner-global dist tree HAS version file
 
 modpack-init-inner-local:
 	test $$(stat -c %i '$(initcmd_inner_embedded_pack)') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-embedded-packdir`")
 	test $$(stat -c %i '$(initcmd_inner_embedded_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-embedded-configsdir`")
-	test $$(stat -c %i '$(initcmd_inner_embedded_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-embedded-libexecdir`")
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-packdir`")
 	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)/configs') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-configsdir`")
-	test $$(stat -c %i '$(initcmd_inner_outoftree_pack)/libexec') -eq $$($(initcmd_ctx_inner) stat -c %i "`$(initcmd_ctx_inner) git inner-outoftree-libexecdir`")
 	test -e '$(initcmd_inner_relpath_pack)/install.sh'
 
 modpack-init-global-reinstall:
