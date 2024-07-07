@@ -12,10 +12,14 @@ default_package_name()
 
 default_install_scope()
 {
-  if git config --local -l &>/dev/null; then
+  packdir_localscope=$(git -C "$PACKDIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+  workdir_localscope=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+
+  if [[ ! $packdir_localscope ]]; then
+    printf 'global\n'
+  elif [[ $packdir_localscope == $workdir_localscope ]]; then
     printf 'local\n'
   else
-    printf 'global\n'
+    printf 'EBOUNDARY\n'
   fi
 }
-

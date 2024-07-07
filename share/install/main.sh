@@ -24,6 +24,7 @@ $(if pack_is_template; then printf '\n  %s\n' 'Template options:'; fi)
 $(if pack_is_template; then printf '%s\n' 'r,rename=new-name rename this template into a package'; fi)
 "
 
+have_opt_scope=
 eval "$(git rev-parse --parseopt --stuck-long -- "$@" <<< "$usage_spec" || echo exit $?)"
 until [[ $1 == '--' ]]; do
   opt_name=${1%%=*}
@@ -34,8 +35,8 @@ until [[ $1 == '--' ]]; do
     --uninstall       ) modes+=(uninstall)                ;;
     --reinstall       ) modes+=(uninstall install)        ;;
     --abspath         ) ENABLE_INSTALL_ABSPATHS=1         ;;
-    --global          ) field_add install.scope global ;;
-    --local           ) field_add install.scope local  ;;
+    --global          ) field_add install.scope global ; have_opt_scope=1;;
+    --local           ) field_add install.scope local  ; have_opt_scope=1;;
     --list-fields     ) modes+=(list-fields)          ;;
     --get-field       )
       modes+=(get-field)
@@ -65,9 +66,15 @@ fi
 
 PACKAGE_NAME=$(field_get 'package.name')
 PACKAGE_CONFIGSDIR=$(field_get 'package.configsdir')
-INSTALL_SCOPE=$(field_get 'install.scope')
 GIT_CONFIG_OPTS=()
 INSTALL_GITCONFIG_DIR=
+
+current_installscope=$(git config --get --show-scope modpack."$PACKAGE_NAME".packdir 2>/dev/null | awk '{print $1}')
+if [[ ! $have_opt_scope ]] && [[ $current_installscope ]]; then
+  field_add install.scope "$current_installscope"
+fi
+
+INSTALL_SCOPE=$(field_get 'install.scope')
 
 case $INSTALL_SCOPE in
   local)
@@ -75,6 +82,11 @@ case $INSTALL_SCOPE in
   ;;
   global)
     GIT_CONFIG_OPTS+=(--global)
+  ;;
+  EBOUNDARY)
+    printf 'fatal: runtime error: pack %s is bound to a different git context.\n' "$PACKDIR" >&2
+    printf 'explicity re-bind it using --global or --local.\n'                          >&2
+    exit 1
   ;;
   *)
     input_error "invalid install.scope: $INSTALL_SCOPE; must be one of: local, global"
