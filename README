@@ -36,11 +36,12 @@ make dist
 
 == About ==
 
-`git-modpack` is a git extension which provides a runtime and boilerplate for
-developing other extensions. Extensions built from this toolchain may in turn be
-referred to as "modpacks". An essential feature of every modpack is that it may
-be installed into either a global or a local git context, allowing it to be
-activated inside certain projects while not impacting others.
+`git-modpack` is a toolchain for building distributable packages of git plugins.
+Such a package built using this toolchain is subsequently referred to as a
+"modpack". An essential feature of all modpacks is that they may
+be installed into either a global or a local git context. This allows the user
+to use different modpacks in different projects while also using generalized
+modpacks across all projects.
 
 == Use Cases ==
 
@@ -50,7 +51,7 @@ activated inside certain projects while not impacting others.
 
 == Developing Modpacks ==
 
-`git-modpack` provides convenient primitives for developing extensions in bash:
+`git-modpack` provides convenient primitives for developing plugins in bash:
 
 * Script templates which include a skeleton `rev-parse --parseopts` implementation
 * The packlib library, which includes:
