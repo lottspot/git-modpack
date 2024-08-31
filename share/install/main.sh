@@ -9,7 +9,7 @@ ini_path=$PACKDIR/install.ini
 declare -A default_fields=(
   [package.name]=$(default_package_name "$PACKDIR")
   [package.configsdir]=.
-  [package.libexecdir]=.
+  [package.progsdir]=.
 )
 ENABLE_INSTALL_ABSPATHS=
 

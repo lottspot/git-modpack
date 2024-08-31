@@ -29,13 +29,13 @@ END {
   fi
 }
 
-core_newexecalias()
+core_newprog()
 {
   local alias_name=$1
-  local libexecdir=$PACKDIR/$($PACKDIR/install.sh --get-field=package.libexecdir)
+  local progsdir=$PACKDIR/$($PACKDIR/install.sh --get-field=package.progsdir)
   local package_name=$($PACKDIR/install.sh --get-field=package.name)
   local alias_script_name=$alias_name.sh
-  local alias_script_path=$libexecdir/$alias_script_name
+  local alias_script_path=$progsdir/$alias_script_name
   local alias_script_skel=$(cat <<'EOF' | sed -E "s,%alias_name%,$alias_name,g"
 #!/usr/bin/env bash
 set -e
@@ -75,7 +75,7 @@ EOF
 )
 
   if [[ ! $alias_name ]]; then
-    printf 'usage: newexecalias ALIAS_NAME\n' >&2
+    printf 'usage: newprog PROG_NAME\n' >&2
     exit 1
   fi
 
@@ -83,8 +83,8 @@ EOF
     exit 0
   fi
 
-  mkdir -p "$libexecdir"
-  core_newalias "$alias_name" "!exec \"\`git $package_name-libexecdir\`/$alias_script_name\""
+  mkdir -p "$progsdir"
+  core_newalias "$alias_name" "!exec \"\`git $package_name-progsdir\`/$alias_script_name\""
   printf '%s\n' "$alias_script_skel" > "$alias_script_path"
   chmod +x "$alias_script_path"
   printf '+ %s\n' "${alias_script_path#$PACKDIR/}"

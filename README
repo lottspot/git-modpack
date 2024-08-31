@@ -93,11 +93,11 @@ alias will be set to. For more information on alias command format, refer to the
 
 Aliases which require complex logic, escape sequences, or long sequences of
 commands may prove difficult to maintain as values in pack config files.
-For such cases, modpacks provide an "exec alias" convention which provides
-for executing bash scripts as aliases.
+For such cases, modpacks include a "prog" convention which provides for
+executing bash scripts as aliases.
 
 ----
-git foo-newexecalias foo-script
+git foo-newprog foo-script
 ----
 
 The location of the newly created script will be written to stdout.

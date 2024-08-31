@@ -120,7 +120,7 @@ fi
 
 declare -A default_fields=(
   ['package.configsdir']=configs
-  ['package.libexecdir']=libexec
+  ['package.progsdir']=bin
 )
 
 if [[ $newpack_name ]]; then

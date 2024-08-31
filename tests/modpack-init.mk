@@ -122,18 +122,18 @@ $(initcmd_local_toplevel):
 	$(initcmd_ctx_inner) git config --local git-modpack.installScope ''
 
 $(initcmd_outer_global_pack):
-	$(initcmd_environ) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$@'
+	$(initcmd_environ) $(SHELL) '$(CURDIR)/../bin/init.sh' --all-resources '$@'
 	cd '$(initcmd_outer_cache)' && $(initcmd_environ) $(SHELL) '$@/install.sh'
 	$(initcmd_ctx_outer) git help-$(@F:git-%=%) | wc -c | xargs expr
 
 $(initcmd_inner_global_pack):
-	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$(CURDIR)/$@'
+	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../bin/init.sh' --all-resources '$(CURDIR)/$@'
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/$@/install.sh' --global
 	$(initcmd_ctx_inner) git help-$(@F:git-%=%) | wc -c | xargs expr
 	if ! [[ `$(initcmd_ctx_inner) git rev-list -1 HEAD --` ]]; then $(initcmd_ctx_inner) git add -A && $(initcmd_ctx_inner) git commit -m 'initial commit'; fi
 
 $(initcmd_inner_outoftree_pack) $(initcmd_inner_embedded_pack):
-	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../libexec/init.sh' --all-resources '$(CURDIR)/$@'
+	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/../bin/init.sh' --all-resources '$(CURDIR)/$@'
 	$(initcmd_ctx_inner) $(SHELL) '$(CURDIR)/$@/install.sh' $(if $(filter $@,$(initcmd_inner_outoftree_pack)),--local)
 	$(initcmd_ctx_inner) git help-$(@F:git-%=%) | wc -c | xargs expr
 

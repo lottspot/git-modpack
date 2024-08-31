@@ -14,8 +14,8 @@ fields and default install options.
 `package.configsdir` :: _default: "."_; A directory path relative to the
   modpack directory where gitconfigs are contained. The last value defined
   will be used.
-`package.libexecdir` :: _default: "libexec"_; A directory path relative to the
-  modpack directory where exec alias scripts are contained.
+`package.progsdir`   :: _default: "."_; A directory path relative to the
+  modpack directory where prog scripts are contained.
 `install.pre`        :: _default: [none]_; A shell command to be evaluated
   immediately prior to modpack installation. Each value defined will be
   evaluated in sequence.
