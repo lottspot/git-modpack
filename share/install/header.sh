@@ -32,12 +32,12 @@ install script for %pack_name% package
 h,help!                  show the help
 version!                 print the version number and exit
 libdoc!                  print the packlib synopsis and exit
-uninstall!               remove an installation created by this script
+uninstall!               clear setup values from the gitconfig
 reinstall!               perform an uninstall -> install sequence
-c,reconfigure!           (re-)create git config includes of sources in configsdir
-abspath!                 use absolute paths for values installed into gitconfig
-global!                  convenience option for -i install.scope=global
-local!                   convenience option for -i install.scope=local
+c,reconfigure!           reset include.path options in the gitconfig
+abspath!                 use absolute paths for setup values in the gitconfig
+global!                  setup in the global gitconfig
+local!                   setup in the local gitconfig
 l,list-fields!           list all install.ini fields
 f,get-field!=name        lookup an install.ini field value
 i,ini!=name=val          override an install.ini assignment for this invocation
