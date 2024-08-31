@@ -18,9 +18,9 @@ if [[ -e $ini_path ]]; then
 fi
 
 # install.scope values are under the exclusive purview of the user
-gitconfig_installscope=$(git config --get git-modpack.installScope 2>/dev/null || true)
-if [[ $gitconfig_installscope ]]; then
-  field_add install.scope "$gitconfig_installscope"
+GITCONFIG_INSTALLSCOPE=$(git config --get git-modpack.installScope 2>/dev/null || true)
+if [[ $GITCONFIG_INSTALLSCOPE ]]; then
+  field_add install.scope "$GITCONFIG_INSTALLSCOPE"
 else
   field_add install.scope "$(default_install_scope)"
 fi
