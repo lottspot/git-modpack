@@ -76,9 +76,9 @@ PACKAGE_CONFIGSDIR=$(field_get 'package.configsdir')
 GIT_CONFIG_OPTS=()
 INSTALL_GITCONFIG_DIR=
 
-current_installscope=$(git config --get --show-scope modpack."$PACKAGE_NAME".packdir 2>/dev/null | awk '{print $1}')
-if [[ ! $have_opt_scope ]] && [[ $current_installscope ]]; then
-  field_add install.scope "$current_installscope"
+CURRENT_INSTALLSCOPE=$(git config --get --show-scope modpack."$PACKAGE_NAME".packdir 2>/dev/null | awk '{print $1}')
+if [[ ! $have_opt_scope ]] && [[ $CURRENT_INSTALLSCOPE ]]; then
+  field_add install.scope "$CURRENT_INSTALLSCOPE"
 fi
 
 INSTALL_SCOPE=$(field_get 'install.scope')
@@ -107,7 +107,7 @@ for mode in "${modes[@]}"; do
   case $mode in
     install     ) mode_install                    ;;
     uninstall   ) mode_uninstall                  ;;
-    reconfigure ) write_gitconfig                 ;;
+    reconfigure ) mode_reconfigure                ;;
     list-fields ) fields_list                     ;;
     get-field   ) field_get_all "$get_field_name" ;;
     libdoc      ) mode_libdoc                     ;;

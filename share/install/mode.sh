@@ -45,6 +45,13 @@ mode_uninstall()
   done <<< "$(field_get_all 'uninstall.post')"
 }
 
+mode_reconfigure()
+{
+  if [[ $CURRENT_INSTALLSCOPE ]]; then
+    write_gitconfig
+  fi
+}
+
 mode_libdoc()
 {
   local awk_prog='
