@@ -91,16 +91,17 @@ case $INSTALL_SCOPE in
     GIT_CONFIG_OPTS+=(--global)
   ;;
   EBOUNDARY)
-    printf 'fatal: runtime error: pack %s is bound to a different git context.\n' "$PACKDIR" >&2
-    printf 'explicity re-bind it using --global or --local.\n'                          >&2
-    exit 1
+    runtime_error "$(printf '%s\n'                         \
+      "pack $PACKDIR is bound to a different git context." \
+      "explicity re-bind it using --global or --local."    \
+    )"
   ;;
   *)
-    input_error "invalid install.scope: $INSTALL_SCOPE; must be one of: local, global"
+    runtime_error "invalid install.scope: $INSTALL_SCOPE; must be one of: local, global"
   ;;
 esac
 
-assert_inputs_valid
+assert_no_errors
 
 for mode in "${modes[@]}"; do
   case $mode in

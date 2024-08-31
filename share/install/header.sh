@@ -18,6 +18,9 @@
 #   * `field_get_all NAME`
 #   * `fields_load   INI_PATH...`
 #   * `fields_write  INI_PATH`
+# errors::
+#   * `runtime_error MSG`
+#   * `assert_no_errors`
 set -e
 
 install_usage_spec="\
@@ -40,20 +43,20 @@ f,get-field!=name        lookup an install.ini field value
 i,ini!=name=val          override an install.ini assignment for this invocation
 "
 
-input_error()
+runtime_error()
 {
-  if [ "$input_errors" ]; then
-    input_errors="$input_errors$(printf '\n%s\n' "$1")"
+  if [ "$runtime_errors" ]; then
+    runtime_errors="$runtime_errors$(printf '\n%s\n' "$1")"
   else
-    input_errors="$(printf '%s\n' "$1")"
+    runtime_errors="$(printf '%s\n' "$1")"
   fi
 }
 
-assert_inputs_valid()
+assert_no_errors()
 {
-  if [ "$input_errors" ]; then
-    printf 'fatal: input errors\n' >&2
-    printf '%s\n' "$input_errors"  >&2
+  if [ "$runtime_errors" ]; then
+    printf 'fatal: runtime errors\n' >&2
+    printf '%s\n' "$runtime_errors"  >&2
     exit 1
   fi
 }
