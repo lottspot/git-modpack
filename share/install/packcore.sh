@@ -2,8 +2,8 @@ core_newalias()
 {
   local alias_name=$1
   local alias_cmd=$2
+  local alias_config=$PACKDIR/$($PACKDIR/install.sh --get-field=package.configsdir)/$alias_name
   local helpdoc=$PACKDIR/docs/help.txt
-  local coreconfig=$PACKDIR/$($PACKDIR/install.sh --get-field=package.configsdir)/core
   local awk_prog='
 { divcol = index($0, "::") }
 END {
@@ -21,8 +21,9 @@ END {
     alias_cmd=!false
   fi
 
-  git config --file="$coreconfig" --add alias."$alias_name" "$alias_cmd"
-  printf '>> %s\n' "${coreconfig#$PACKDIR/}"
+  git config --file="$alias_config" --add alias."$alias_name" "$alias_cmd"
+  printf '>> %s\n' "${alias_config#$PACKDIR/}"
+  $PACKDIR/install.sh --reconfigure
   if [[ -w $helpdoc ]]; then
     awk -v newalias="$alias_name" "$awk_prog" < "$helpdoc" >> "$helpdoc"
     printf '>> %s\n' "${helpdoc#$PACKDIR/}"
