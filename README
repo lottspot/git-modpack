@@ -36,8 +36,8 @@ make dist
 
 == About ==
 
-`git-modpack` is a toolchain for building distributable packages of git plugins.
-Such a package built using this toolchain is subsequently referred to as a
+`git-modpack` is a framework for building distributable packages of git plugins.
+Such a package built using this framework is subsequently referred to as a
 "modpack". An essential feature of all modpacks is that they may
 be installed into either a global or a local git context. This allows the user
 to use different modpacks in different projects while also using generalized
